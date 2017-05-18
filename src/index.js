@@ -21,10 +21,10 @@ export default class JsDash {
       return val.startsWith('js-');
     }
 
-    this._els = context.querySelectorAll('[class*="js-"]');
+    let els = context.querySelectorAll('[class*="js-"]');
 
-    if (this._els.length > 0) {
-      this._els.forEach((el)=>{
+    if (els.length > 0) {
+      els.forEach((el)=>{
         el.getAttribute('class').split(' ').filter(_hasJs).forEach((behavior) => {
           var proto = behavior.substring('js-'.length);
 
