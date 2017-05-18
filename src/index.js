@@ -1,7 +1,6 @@
 export default class JsDash {
   constructor(scope) {
     this.lib = {};
-    this.els = [];
     this._scope = scope || this.lib;
 
     this._ready(() => {
@@ -22,10 +21,10 @@ export default class JsDash {
       return val.startsWith('js-');
     }
 
-    this.els = context.querySelectorAll('[class*="js-"]');
+    this._els = context.querySelectorAll('[class*="js-"]');
 
     if (this._els.length > 0) {
-      this.els.forEach((el)=>{
+      this._els.forEach((el)=>{
         el.getAttribute('class').split(' ').filter(_hasJs).forEach((behavior) => {
           var proto = behavior.substring('js-'.length);
 
