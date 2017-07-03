@@ -1,6 +1,6 @@
 {
   "name": "js-",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Produce universal library with webpack and es6",
   "main": "lib/js-.js",
   "scripts": {
