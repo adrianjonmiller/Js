@@ -1,6 +1,6 @@
 export default class JsDash {
   constructor(scope) {
-    this.lib = {};
+    this.dash = {};
     this._scope = scope || this.lib;
 
     this._ready(() => {
