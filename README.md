@@ -23,7 +23,7 @@ js.dash.functionName = function () {
 
 ### Scoped
 
-JsDash will crawl the <body> by default but can be scoped to a specific element by passing it a selector
+JsDash will crawl the 'body' element by default but can be scoped to a specific element by passing it a selector
 
 ```js
 var js = new Js('#main');
@@ -70,20 +70,19 @@ js.dash.functionName = function () {
 */
 ```
 
-### Properties
+### Properties on 'this'
 * dash - Returns any functions attached to this elements virtual node
 * childNodes - Virtual nodes of any children of the element
-* value - Value of the
+* value - Value of the element (if its in input)
 
 ### Methods attached to 'this'
 
 * addChild(element, callback()) - Adds a child to the element
-* addAttribute(attribute, value) - Adds any attribute to the element
+* setAttribute(attribute, value) - Set any attribute on the element
 * emit(eventName) - Emits a custom event
 * event(eventName) - Listens for an event
 * find(attribute, value, callback()) - Searches virtual DOM
 * node() - Returns the actual DOM element
 * remove() - Removes the element (and is virtual node)
-* removeAttribute(attribute, value) - Removes
 * setStyle(property, value, callback()) - Adds a scoped style
 * text(String) - Sets the text of the element
