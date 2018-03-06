@@ -48,7 +48,12 @@ When a function is initialized it has its __this__ set to a Virtual DOM node (vn
 ```
 ```js
 js.dash.functionName = function () {
-  console.log(this.node())
+  this /* reference to the vnode of the element */
+}
+```
+```js
+js.dash.functionName = function () {
+  console.log(this.node()) /* This methods returns the actual DOM node */
 }
 /*
   - Console Log -
