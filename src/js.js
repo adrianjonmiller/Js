@@ -1,10 +1,9 @@
 import getAttributes from './getAttributes';
 import getChildren from './getChildren';
-import getContent from './getContent';
 import getLib from './getLib';
-import getNodeValue from './getNodeValue';
 import getStyles from './getStyles';
 import getTagName from './getTagName';
+import getTemplates from './getTemplates';
 import getValue from './getValue';
 import styleNode from './styleNode';
 import updateStyles from './updateStyles';
@@ -33,27 +32,54 @@ export default class Js {
     };
 
     this.attributes = getAttributes(args.$node);
-    this.childNodes = getChildren(args.$node, args.lib);
-    this.content = getContent(args.$node);
+    this.childNodes = getChildren(args.$node, args.lib, this);
     this.styles = getStyles(args.$node, args.uid);
-    this.nodeType = args.$node.nodeType;
-    this.tagName = getTagName(args.$node);
-    this.nodeValue = getNodeValue(args.$node);
-    this.value = getValue(args.$node);
+    this.templates = getTemplates(args.$node);
 
-    this.styleNode = styleNode(this.styles, this.uid, this.node());
+    if (getTagName(args.$node) === 'input') {
+      this.value = getValue(args.$node);
+    }
+
     this.lib = getLib(this, args.lib);
+
+    this._styleNode = styleNode(this.styles, this.uid, this.node());
   }
 
   addChild ($child, cb) {
-    var id = utils.uid();
-    var frag = document.createDocumentFragment();
+    let id = '';
+
+    if ($child.nodeType === 11) {
+      for (let i = 0; i < $child.childNodes.length; i++) {
+        let $node = $child.childNodes[i];
+
+        id = utils.uid();
+
+        if ($node.nodeType === 1) {
+          this.childNodes[id] = new Js({
+            $node: $node,
+            parent: this,
+            lib: this._jsLib,
+            uid: id
+          });
+        }
+      }
+
+      this.node().appendChild($child);
+
+      if (typeof cb === 'function') {
+        cb(this.childNodes[id]);
+      }
+      return;
+    }
+
+    id = utils.uid();
+    let frag = document.createDocumentFragment();
 
     this.childNodes[id] = new Js({
       $node: $child,
       parent: this,
       lib: this._jsLib(),
-      uid: utils.uid()
+      uid: id
     });
 
     this.node().appendChild(frag.appendChild($child));
@@ -62,23 +88,6 @@ export default class Js {
       cb(this.childNodes[id]);
     }
   };
-
-  addAttribute (attribute, value) {
-    let attributeCamel = utils.dashToCamelCase(attribute);
-
-    this.attributes[attributeCamel] = this.attributes[attributeCamel] !== undefined ?
-    (this.attributes[attributeCamel] + ' ' + value).trim() : value;
-
-    if (this.node().attributes[attribute] !== this.attributes[utils.dashToCamelCase(attribute)]) {
-      this.node().setAttribute(attribute, this.attributes[utils.dashToCamelCase(attribute)]);
-    }
-  }
-
-  setStyle (prop, value, cb) {
-    this.styles[prop] = value;
-
-    updateStyles(this.styleNode(), this.styles, this.uid);
-  }
 
   emit (eventName) {
     var event = new CustomEvent(eventName, {
@@ -149,23 +158,20 @@ export default class Js {
     delete this.parent().childNodes[this._uid];
   }
 
-  removeAttribute (attribute, value) {
-    if (value !== undefined && this.attributes[utils.dashToCamelCase(attribute)] !== undefined) {
-      let attributeList = this.attributes[utils.dashToCamelCase(attribute)].split(' ');
-      let index = attributeList.indexOf(value);
+  setAttribute (attribute, value) {
+    let attributeCamel = utils.dashToCamelCase(attribute);
 
-      if (index > -1) {
-        attributeList.splice(index, 1);
-        this.attributes[utils.dashToCamelCase(attribute)] = attributeList.join(' ');
-      }
+    this.attributes[attributeCamel] = value;
 
-      if (this.node().getAttribute(attribute) !== this.attributes[utils.dashToCamelCase(attribute)]) {
-        this.node().setAttribute(attribute, this.attributes[utils.dashToCamelCase(attribute)]);
-      }
-    } else {
-      delete this.attributes[utils.dashToCamelCase(attribute)];
-      this.node().removeAttribute(attribute);
+    if (this.node().attributes[attribute] !== this.attributes[attributeCamel]) {
+      this.node().setAttribute(attribute, this.attributes[utils.dashToCamelCase(attribute)]);
     }
+  }
+
+  setStyle (prop, value, cb) {
+    this.styles[prop] = value;
+
+    updateStyles(this._styleNode(), this.styles, this.uid);
   }
 
   text (text) {

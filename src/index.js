@@ -5,7 +5,7 @@ export default class JsDash {
   constructor (selector) {
     let $node = document.querySelector(selector) || document.body;
 
-    this.lib = {};
+    this.dash = {};
 
     ((cb) => {
       if (document.readyState !== 'loading') {
@@ -18,16 +18,16 @@ export default class JsDash {
         let t0 = performance.now();
         let uid = $node.getAttribute('id') ? $node.getAttribute('id') : utils.uid();
 
-        this.vnode = new Js({$node: $node, lib: this.lib, uid: uid});
+        this.vnode = new Js({$node: $node, lib: this.dash, uid: uid});
 
         let t1 = performance.now();
 
         console.log('Initializing the JS took ' + (t1 - t0) + ' milliseconds.');
       }
 
-      if (Object.keys(this.lib).length === 0) {
+      if (Object.keys(this.dash).length === 0) {
         let check = setInterval(function () {
-          if (Object.keys(this.lib).length !== 0) {
+          if (Object.keys(this.dash).length !== 0) {
             boostrap.bind(this)();
             clearInterval(check);
           }

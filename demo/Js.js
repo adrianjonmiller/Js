@@ -73,7 +73,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 11);
+/******/ 	return __webpack_require__(__webpack_require__.s = 12);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -113,7 +113,7 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-exports.default = function ($node, lib) {
+exports.default = function ($node, lib, parent) {
   var $children = $node.childNodes;
   var length = $children.length;
   var children = {};
@@ -128,17 +128,21 @@ exports.default = function ($node, lib) {
 
     if ($child.nodeType === 1) {
       uid = $child.getAttribute('id') ? $child.getAttribute('id') : uid;
+      children[uid] = new _js2.default({
+        $node: $child,
+        parent: parent,
+        lib: lib,
+        uid: uid
+      });
     }
-
-    children[uid] = (0, _toJSON2.default)($children[i], $node, lib, uid);
   }
 
   return children;
 };
 
-var _toJSON = __webpack_require__(13);
+var _js = __webpack_require__(3);
 
-var _toJSON2 = _interopRequireDefault(_toJSON);
+var _js2 = _interopRequireDefault(_js);
 
 var _utils = __webpack_require__(0);
 
@@ -186,17 +190,9 @@ var _getChildren = __webpack_require__(1);
 
 var _getChildren2 = _interopRequireDefault(_getChildren);
 
-var _getContent = __webpack_require__(5);
-
-var _getContent2 = _interopRequireDefault(_getContent);
-
 var _getLib = __webpack_require__(9);
 
 var _getLib2 = _interopRequireDefault(_getLib);
-
-var _getNodeValue = __webpack_require__(6);
-
-var _getNodeValue2 = _interopRequireDefault(_getNodeValue);
 
 var _getStyles = __webpack_require__(10);
 
@@ -206,11 +202,15 @@ var _getTagName = __webpack_require__(2);
 
 var _getTagName2 = _interopRequireDefault(_getTagName);
 
+var _getTemplates = __webpack_require__(15);
+
+var _getTemplates2 = _interopRequireDefault(_getTemplates);
+
 var _getValue = __webpack_require__(7);
 
 var _getValue2 = _interopRequireDefault(_getValue);
 
-var _styleNode = __webpack_require__(12);
+var _styleNode = __webpack_require__(13);
 
 var _styleNode2 = _interopRequireDefault(_styleNode);
 
@@ -251,29 +251,56 @@ var Js = function () {
     };
 
     this.attributes = (0, _getAttributes2.default)(args.$node);
-    this.childNodes = (0, _getChildren2.default)(args.$node, args.lib);
-    this.content = (0, _getContent2.default)(args.$node);
+    this.childNodes = (0, _getChildren2.default)(args.$node, args.lib, this);
     this.styles = (0, _getStyles2.default)(args.$node, args.uid);
-    this.nodeType = args.$node.nodeType;
-    this.tagName = (0, _getTagName2.default)(args.$node);
-    this.nodeValue = (0, _getNodeValue2.default)(args.$node);
-    this.value = (0, _getValue2.default)(args.$node);
+    this.templates = (0, _getTemplates2.default)(args.$node);
 
-    this.styleNode = (0, _styleNode2.default)(this.styles, this.uid, this.node());
+    if ((0, _getTagName2.default)(args.$node) === 'input') {
+      this.value = (0, _getValue2.default)(args.$node);
+    }
+
     this.lib = (0, _getLib2.default)(this, args.lib);
+
+    this._styleNode = (0, _styleNode2.default)(this.styles, this.uid, this.node());
   }
 
   _createClass(Js, [{
     key: 'addChild',
     value: function addChild($child, cb) {
-      var id = _utils2.default.uid();
+      var id = '';
+
+      if ($child.nodeType === 11) {
+        for (var i = 0; i < $child.childNodes.length; i++) {
+          var $node = $child.childNodes[i];
+
+          id = _utils2.default.uid();
+
+          if ($node.nodeType === 1) {
+            this.childNodes[id] = new Js({
+              $node: $node,
+              parent: this,
+              lib: this._jsLib,
+              uid: id
+            });
+          }
+        }
+
+        this.node().appendChild($child);
+
+        if (typeof cb === 'function') {
+          cb(this.childNodes[id]);
+        }
+        return;
+      }
+
+      id = _utils2.default.uid();
       var frag = document.createDocumentFragment();
 
       this.childNodes[id] = new Js({
         $node: $child,
         parent: this,
         lib: this._jsLib(),
-        uid: _utils2.default.uid()
+        uid: id
       });
 
       this.node().appendChild(frag.appendChild($child));
@@ -281,24 +308,6 @@ var Js = function () {
       if (typeof cb === 'function') {
         cb(this.childNodes[id]);
       }
-    }
-  }, {
-    key: 'addAttribute',
-    value: function addAttribute(attribute, value) {
-      var attributeCamel = _utils2.default.dashToCamelCase(attribute);
-
-      this.attributes[attributeCamel] = this.attributes[attributeCamel] !== undefined ? (this.attributes[attributeCamel] + ' ' + value).trim() : value;
-
-      if (this.node().attributes[attribute] !== this.attributes[_utils2.default.dashToCamelCase(attribute)]) {
-        this.node().setAttribute(attribute, this.attributes[_utils2.default.dashToCamelCase(attribute)]);
-      }
-    }
-  }, {
-    key: 'setStyle',
-    value: function setStyle(prop, value, cb) {
-      this.styles[prop] = value;
-
-      (0, _updateStyles2.default)(this.styleNode(), this.styles, this.uid);
     }
   }, {
     key: 'emit',
@@ -373,24 +382,22 @@ var Js = function () {
       delete this.parent().childNodes[this._uid];
     }
   }, {
-    key: 'removeAttribute',
-    value: function removeAttribute(attribute, value) {
-      if (value !== undefined && this.attributes[_utils2.default.dashToCamelCase(attribute)] !== undefined) {
-        var attributeList = this.attributes[_utils2.default.dashToCamelCase(attribute)].split(' ');
-        var index = attributeList.indexOf(value);
+    key: 'setAttribute',
+    value: function setAttribute(attribute, value) {
+      var attributeCamel = _utils2.default.dashToCamelCase(attribute);
 
-        if (index > -1) {
-          attributeList.splice(index, 1);
-          this.attributes[_utils2.default.dashToCamelCase(attribute)] = attributeList.join(' ');
-        }
+      this.attributes[attributeCamel] = value;
 
-        if (this.node().getAttribute(attribute) !== this.attributes[_utils2.default.dashToCamelCase(attribute)]) {
-          this.node().setAttribute(attribute, this.attributes[_utils2.default.dashToCamelCase(attribute)]);
-        }
-      } else {
-        delete this.attributes[_utils2.default.dashToCamelCase(attribute)];
-        this.node().removeAttribute(attribute);
+      if (this.node().attributes[attribute] !== this.attributes[attributeCamel]) {
+        this.node().setAttribute(attribute, this.attributes[_utils2.default.dashToCamelCase(attribute)]);
       }
+    }
+  }, {
+    key: 'setStyle',
+    value: function setStyle(prop, value, cb) {
+      this.styles[prop] = value;
+
+      (0, _updateStyles2.default)(this._styleNode(), this.styles, this.uid);
     }
   }, {
     key: 'text',
@@ -456,57 +463,8 @@ function getAttributes($node) {
 module.exports = exports['default'];
 
 /***/ }),
-/* 5 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = getContent;
-
-var _getChildren = __webpack_require__(1);
-
-var _getChildren2 = _interopRequireDefault(_getChildren);
-
-var _getTagName = __webpack_require__(2);
-
-var _getTagName2 = _interopRequireDefault(_getTagName);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function getContent($node, lib) {
-  if (!$node.content) {
-    return null;
-  }
-
-  return {
-    childNodes: (0, _getChildren2.default)($node, lib),
-    nodeType: $node.nodeType,
-    tagName: (0, _getTagName2.default)($node.content)
-  };
-};
-module.exports = exports['default'];
-
-/***/ }),
-/* 6 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = getNodeValue;
-function getNodeValue($node) {
-  return $node.nodeValue ? $node.nodeValue : null;
-};
-module.exports = exports["default"];
-
-/***/ }),
+/* 5 */,
+/* 6 */,
 /* 7 */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -666,7 +624,8 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 module.exports = exports['default'];
 
 /***/ }),
-/* 11 */
+/* 11 */,
+/* 12 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -695,7 +654,7 @@ var JsDash = function JsDash(selector) {
 
   var $node = document.querySelector(selector) || document.body;
 
-  this.lib = {};
+  this.dash = {};
 
   (function (cb) {
     if (document.readyState !== 'loading') {
@@ -708,16 +667,16 @@ var JsDash = function JsDash(selector) {
       var t0 = performance.now();
       var uid = $node.getAttribute('id') ? $node.getAttribute('id') : _utils2.default.uid();
 
-      this.vnode = new _js2.default({ $node: $node, lib: this.lib, uid: uid });
+      this.vnode = new _js2.default({ $node: $node, lib: this.dash, uid: uid });
 
       var t1 = performance.now();
 
       console.log('Initializing the JS took ' + (t1 - t0) + ' milliseconds.');
     }
 
-    if (Object.keys(_this.lib).length === 0) {
+    if (Object.keys(_this.dash).length === 0) {
       var check = setInterval(function () {
-        if (Object.keys(this.lib).length !== 0) {
+        if (Object.keys(this.dash).length !== 0) {
           boostrap.bind(this)();
           clearInterval(check);
         }
@@ -732,7 +691,7 @@ exports.default = JsDash;
 module.exports = exports['default'];
 
 /***/ }),
-/* 12 */
+/* 13 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -766,7 +725,8 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 module.exports = exports['default'];
 
 /***/ }),
-/* 13 */
+/* 14 */,
+/* 15 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -775,98 +735,35 @@ module.exports = exports['default'];
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.default = toJSON;
 
-var _getAttributes = __webpack_require__(4);
+exports.default = function ($node, data) {
+  var $children = $node.childNodes;
+  var length = $children.length;
+  var templates = {};
 
-var _getAttributes2 = _interopRequireDefault(_getAttributes);
+  if (length === 0) {
+    return null;
+  }
 
-var _getContent = __webpack_require__(5);
+  for (var i in $children) {
+    var $child = $children[i];
 
-var _getContent2 = _interopRequireDefault(_getContent);
+    if ($child.tagName === 'TEMPLATE') {
+      var uid = $child.getAttribute('id') ? $child.getAttribute('id') : _utils2.default.uid();
 
-var _getChildren = __webpack_require__(1);
+      templates[uid] = $child.content;
+    }
+  }
 
-var _getChildren2 = _interopRequireDefault(_getChildren);
+  return templates;
+};
 
-var _getNodeValue = __webpack_require__(6);
+var _utils = __webpack_require__(0);
 
-var _getNodeValue2 = _interopRequireDefault(_getNodeValue);
-
-var _getTagName = __webpack_require__(2);
-
-var _getTagName2 = _interopRequireDefault(_getTagName);
-
-var _getValue = __webpack_require__(7);
-
-var _getValue2 = _interopRequireDefault(_getValue);
-
-var _js = __webpack_require__(3);
-
-var _js2 = _interopRequireDefault(_js);
+var _utils2 = _interopRequireDefault(_utils);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-function toJSON($node, parent, lib, uid) {
-  switch ($node.nodeType) {
-    case 1:
-      // Element
-      return new _js2.default({
-        $node: $node,
-        parent: parent,
-        lib: lib,
-        uid: uid
-      });
-
-    case 3:
-      // Text Node
-      return {
-        nodeType: $node.nodeType,
-        nodeValue: (0, _getNodeValue2.default)($node),
-        tagName: (0, _getTagName2.default)($node)
-      };
-
-    case 8:
-      return {
-        nodeType: $node.nodeType,
-        nodeValue: (0, _getNodeValue2.default)($node),
-        tagName: (0, _getTagName2.default)($node)
-      };
-
-    case 9:
-      // DOCUMENT_NODE
-      return {
-        attributes: (0, _getAttributes2.default)($node),
-        childNodes: (0, _getChildren2.default)($node.childNodes, lib),
-        nodeType: $node.nodeType,
-        tagName: (0, _getTagName2.default)($node),
-        value: (0, _getValue2.default)($node)
-      };
-
-    case 10:
-      // DOCUMENT_TYPE_NODE
-      return {
-        attributes: (0, _getAttributes2.default)($node),
-        childNodes: (0, _getChildren2.default)($node.childNodes, lib),
-        nodeType: $node.nodeType,
-        tagName: (0, _getTagName2.default)($node),
-        value: (0, _getValue2.default)($node)
-      };
-
-    case 11:
-      // DOCUMENT_FRAGMENT_NODE
-      return {
-        attributes: (0, _getAttributes2.default)($node),
-        content: (0, _getContent2.default)($node.childNodes, lib),
-        nodeType: $node.nodeType,
-        tagName: (0, _getTagName2.default)($node),
-        value: (0, _getValue2.default)($node)
-      };
-
-    default:
-      return null;
-  }
-}
 module.exports = exports['default'];
 
 /***/ })

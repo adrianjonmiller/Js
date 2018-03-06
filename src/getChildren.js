@@ -1,7 +1,7 @@
-import toJSON from './toJSON';
+import Js from './js';
 import utils from './utils';
 
-export default function ($node, lib) {
+export default function ($node, lib, parent) {
   var $children = $node.childNodes;
   var length = $children.length;
   let children = {};
@@ -16,9 +16,13 @@ export default function ($node, lib) {
 
     if ($child.nodeType === 1) {
       uid = $child.getAttribute('id') ? $child.getAttribute('id') : uid;
+      children[uid] = new Js({
+        $node: $child,
+        parent: parent,
+        lib: lib,
+        uid: uid
+      });
     }
-
-    children[uid] = toJSON($children[i], $node, lib, uid);
   }
 
   return children;

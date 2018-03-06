@@ -1,83 +1,89 @@
-# Webpack library starter
+# JsDash - A Static JS Framework
 
-Webpack based boilerplate for producing libraries (Input: ES6, Output: universal library)
+JsDash is a Javascript framework designed to bring the speed and power of a virtual DOM and the simplicity of libraries like 'jquery' to static websites.
 
-## Features
+### How it works
+The framework looks through the DOM on DOM load and initiates functions and ties them to specific elements.
 
-* Webpack 2 based.
-* ES6 as a source.
-* Exports in a [umd](https://github.com/umdjs/umd) format so your library works everywhere.
-* ES6 test setup with [Mocha](http://mochajs.org/) and [Chai](http://chaijs.com/).
-* Linting with [ESLint](http://eslint.org/).
+_Basic Example:_
 
-## Process
-
+```html
+<div class="js-functionName"></div>
 ```
-ES6 source files
-       |
-       |
-    webpack
-       |
-       +--- babel, eslint
-       |
-  ready to use
-     library
-  in umd format
-```
-
-*Have in mind that you have to build your library before publishing. The files under the `lib` folder are the ones that should be distributed.*
-
-## Getting started
-
-1. Setting up the name of your library
-  * Open `webpack.config.js` file and change the value of `libraryName` variable.
-  * Open `package.json` file and change the value of `main` property so it matches the name of your library.
-2. Build your library
-  * Run `npm install` to get the project's dependencies
-  * Run `npm run build` to produce minified version of your library.
-3. Development mode
-  * Having all the dependencies installed run `npm run dev`. This command will generate an non-minified version of your library and will run a watcher so you get the compilation on file change.
-4. Running the tests
-  * Run `npm run test`
-
-## Scripts
-
-* `npm run build` - produces production version of your library under the `lib` folder
-* `npm run dev` - produces development version of your library and runs a watcher
-* `npm run test` - well ... it runs the tests :)
-* `npm run test:watch` - same as above but in a watch mode
-
-## Readings
-
-* [Start your own JavaScript library using webpack and ES6](http://krasimirtsonev.com/blog/article/javascript-library-starter-using-webpack-es6)
-
-## Misc
-
-### An example of using dependencies that shouldn’t be resolved by webpack, but should become dependencies of the resulting bundle
-
-In the following example we are excluding React and Lodash:
+Onload the function 'functionName' will be initialized
 
 ```js
-{
-  devtool: 'source-map',
-  output: {
-    path: '...',
-    libraryTarget: 'umd',
-    library: '...'
-  },
-  entry: '...',
-  ...
-  externals: {
-    react: 'react'
-    // Use more complicated mapping for lodash.
-    // We need to access it differently depending
-    // on the environment.
-    lodash: {
-      commonjs: 'lodash',
-      commonjs2: 'lodash',
-      amd: '_',
-      root: '_'
-    }
-  }
+var js = new Js();
+
+js.dash.functionName = function () {
+  console.log('Hello World');
 }
 ```
+---
+
+### Scoped
+
+JsDash will crawl the <body> by default but can be scoped to a specific element by passing it a selector
+
+```js
+var js = new Js('#main');
+```
+```html
+<body>
+  <div id="main">
+    <div class="js-functionName"></div> <!--- Initialized -->
+  </div>
+
+  <div class="js-functionName"></div> <!--- Ignored -->
+</body>
+```
+
+### The virtual DOM
+When a function is initialized it has its __this__ set to a Virtual DOM node (vnode) representing the element it was initialized on.
+
+```html
+<body>
+  <div id="elementId" class="elementClass js-functionName"></div>
+</body>
+```
+```js
+js.dash.functionName = function () {
+  console.log(this.node())
+}
+/*
+  - Console Log -
+  <div id="elementId" class="elementClass js-functionName"></div>
+*/
+
+```
+To retrieve the element attributes
+```js
+js.dash.functionName = function () {
+  console.log(this.attributes)
+}
+/*
+ - Console Log -
+ {
+    class: 'elementClass js-functionName',
+    id: 'elementId'
+  }
+*/
+```
+
+### Properties
+* dash - Returns any functions attached to this elements virtual node
+* childNodes - Virtual nodes of any children of the element
+* value - Value of the
+
+### Methods attached to 'this'
+
+* addChild(element, callback()) - Adds a child to the element
+* addAttribute(attribute, value) - Adds any attribute to the element
+* emit(eventName) - Emits a custom event
+* event(eventName) - Listens for an event
+* find(attribute, value, callback()) - Searches virtual DOM
+* node() - Returns the actual DOM element
+* remove() - Removes the element (and is virtual node)
+* removeAttribute(attribute, value) - Removes
+* setStyle(property, value, callback()) - Adds a scoped style
+* text(String) - Sets the text of the element
