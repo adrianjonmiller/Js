@@ -1,26 +1,37 @@
 /* global __dirname, require, module*/
 
-const webpack = require('webpack');
-const UglifyJsPlugin = webpack.optimize.UglifyJsPlugin;
+const BrowserSyncPlugin = require('browser-sync-webpack-plugin');
 const path = require('path');
+const webpack = require('webpack');
 const env  = require('yargs').argv.env; // use --env with webpack 2
 
-let libraryName = 'js-';
+const UglifyJsPlugin = webpack.optimize.UglifyJsPlugin;
+let libraryName = 'Js';
 
-let plugins = [], outputFile;
+let plugins = [], outputFile, outputPath;
 
 if (env === 'build') {
   plugins.push(new UglifyJsPlugin({ minimize: true }));
   outputFile = libraryName + '.min.js';
+  outputPath = __dirname + '/lib';
 } else {
   outputFile = libraryName + '.js';
+  outputPath = __dirname + '/demo';
+  plugins.push(new BrowserSyncPlugin({
+      host: 'localhost',
+      port: 3100,
+      server: {
+        baseDir: ['demo']
+      },
+      files: [outputPath + '/*']
+    }));
 }
 
 const config = {
   entry: __dirname + '/src/index.js',
   devtool: 'source-map',
   output: {
-    path: __dirname + '/lib',
+    path: outputPath,
     filename: outputFile,
     library: libraryName,
     libraryTarget: 'umd',

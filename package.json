@@ -1,5 +1,5 @@
 {
-  "name": "js-",
+  "name": "Js",
   "version": "0.1.1",
   "description": "Produce universal library with webpack and es6",
   "main": "lib/js-.js",
@@ -16,6 +16,8 @@
     "babel-loader": "7.0.0",
     "babel-plugin-add-module-exports": "0.2.1",
     "babel-preset-es2015": "6.24.1",
+    "browser-sync": "2.23.6",
+    "browser-sync-webpack-plugin": "2.0.1",
     "chai": "3.5.0",
     "eslint": "3.19.0",
     "eslint-loader": "1.7.1",
@@ -41,5 +43,8 @@
   "bugs": {
     "url": "https://github.com/krasimir/webpack-library-starter/issues"
   },
-  "homepage": "https://github.com/krasimir/webpack-library-starter"
+  "homepage": "https://github.com/krasimir/webpack-library-starter",
+  "dependencies": {
+    "lodash": "4.17.4"
+  }
 }

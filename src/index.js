@@ -1,42 +1,40 @@
+import Js from './js';
+import utils from './utils';
+
 export default class JsDash {
-  constructor(scope) {
-    this.dash = {};
-    this._scope = scope || this.lib;
+  constructor (selector) {
+    let $node = document.querySelector(selector) || document.body;
 
-    this._ready(() => {
-      this._init(document);
-    });
-  }
+    this.lib = {};
 
-  _ready(cb) {
-    if (document.readyState !== 'loading') {
-      cb();
-    } else {
-      document.addEventListener('DOMContentLoaded', cb);
-    }
-  }
+    ((cb) => {
+      if (document.readyState !== 'loading') {
+        cb(this);
+      } else {
+        document.addEventListener('DOMContentLoaded', cb(this));
+      }
+    })(() => {
+      function boostrap () {
+        let t0 = performance.now();
+        let uid = $node.getAttribute('id') ? $node.getAttribute('id') : utils.uid();
 
-  _init(context) {
-    function _hasJs(val) {
-      return val.startsWith('js-');
-    }
+        this.vnode = new Js({$node: $node, lib: this.lib, uid: uid});
 
-    let els = context.querySelectorAll('[class*="js-"]');
+        let t1 = performance.now();
 
-    if (els.length > 0) {
-      els.forEach((el)=>{
-        el.getAttribute('class').split(' ').filter(_hasJs).forEach((behavior) => {
-          var proto = behavior.substring('js-'.length);
+        console.log('Initializing the JS took ' + (t1 - t0) + ' milliseconds.');
+      }
 
-          if (!el[proto] && this._scope[proto]) {
-            try {
-              (el[proto] = this._scope[proto].bind(el))();
-            } catch (error) {
-              console.log(error.stack);
-            }
+      if (Object.keys(this.lib).length === 0) {
+        let check = setInterval(function () {
+          if (Object.keys(this.lib).length !== 0) {
+            boostrap.bind(this)();
+            clearInterval(check);
           }
-        });
-      });
-    }
+        }.bind(this), 1);
+      } else {
+        boostrap.bind(this)();
+      }
+    });
   }
 }
