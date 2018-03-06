@@ -1,4 +1,4 @@
-# JsDash - A Static JS Framework
+# JsDash - A JS Framework for Static Sites
 
 JsDash is a Javascript framework designed to bring the speed and power of a virtual DOM and the simplicity of libraries like 'jquery' to static websites.
 
