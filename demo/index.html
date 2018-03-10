@@ -8,6 +8,34 @@
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
         <link rel="apple-touch-icon" href="icon.png">
         <!-- Place favicon.ico in the root directory -->
+        <style>
+          :root {
+            font-size: 87.5%;
+          }
+          * {
+            margin-top: 0;
+          }
+
+          html {
+            font-family: 'Helvetica', 'Arial', sans-serif;
+          }
+
+          html,
+          body {
+            margin: 0;
+            padding: 0;
+          }
+
+          h1,
+          h2,
+          h3,
+          h4,
+          h5,
+          h6,
+          p {
+            margin-bottom: 0;
+          }
+        </style>
     </head>
     <body id="body" class="js-body">
         <!--[if lte IE 9]>
@@ -15,14 +43,20 @@
         <![endif]-->
 
         <!-- Add your site or application content here -->
-        <p class="js-test">
-          <template id="awesomeTemplate">
-            <span class="tester">Some content</span>
-          </template>
-        </p>
-
-        <script src="/Js.js"></script>
-        <script src="/app.js"></script>
-        <script src="/app2.js"></script>
+        <div id="main" class="js-main">
+          <header class="js-header">
+            <h1>Logo</h1>
+            <nav>
+              <ul class="js-navList">
+              </ul>
+            </nav>
+          </header>
+          <form action="" class="js-form">
+            <input type="text" class="js-input" value="input1">
+            <span class="js-value"></span>
+          </form>
+        </div>
+      <script src="/Js.js"></script>
+      <script src="/app.js"></script>
     </body>
 </html>

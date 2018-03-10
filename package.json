@@ -19,9 +19,13 @@
     "browser-sync": "2.23.6",
     "browser-sync-webpack-plugin": "2.0.1",
     "chai": "3.5.0",
+    "css-loader": "0.28.10",
     "eslint": "3.19.0",
     "eslint-loader": "1.7.1",
     "mocha": "3.3.0",
+    "node-sass": "4.7.2",
+    "sass-loader": "6.0.7",
+    "style-loader": "0.20.3",
     "webpack": "2.4.1",
     "yargs": "7.1.0"
   },
@@ -45,6 +49,8 @@
   },
   "homepage": "https://github.com/krasimir/webpack-library-starter",
   "dependencies": {
+    "handlebars": "4.0.11",
+    "handlebars-loader": "1.6.0",
     "lodash": "4.17.4"
   }
 }

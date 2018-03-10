@@ -15,7 +15,7 @@ if (env === 'build') {
   outputFile = libraryName + '.min.js';
   outputPath = __dirname + '/lib';
 } else {
-  outputFile = libraryName + '.js';
+  outputFile = '[name].js';
   outputPath = __dirname + '/demo';
   plugins.push(new BrowserSyncPlugin({
       host: 'localhost',
@@ -28,7 +28,10 @@ if (env === 'build') {
 }
 
 const config = {
-  entry: __dirname + '/src/index.js',
+  entry: {
+    js:  __dirname + '/src/index.js',
+    app: __dirname + '/demo/app/app.js'
+  },
   devtool: 'source-map',
   output: {
     path: outputPath,
@@ -43,11 +46,23 @@ const config = {
         test: /(\.jsx|\.js)$/,
         loader: 'babel-loader',
         exclude: /(node_modules|bower_components)/
-      },
-      {
+      },{
         test: /(\.jsx|\.js)$/,
         loader: 'eslint-loader',
         exclude: /node_modules/
+      },{
+        test: /\.handlebars$/,
+        loader: "handlebars-loader"
+      },
+      {
+        test: /\.scss$/,
+        use: [{
+          loader: "style-loader" // creates style nodes from JS strings
+        }, {
+          loader: "css-loader" // translates CSS into CommonJS
+        }, {
+          loader: "sass-loader" // compiles Sass to CSS
+        }]
       }
     ]
   },
