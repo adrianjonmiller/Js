@@ -1,17 +1,14 @@
-export default function getLib (vnode, jsLib) {
+export default function getLib (vnode, jsLib, args) {
   var lib = {};
-  var jsClasses = [];
-  var func;
-  var i = 0;
 
   function _hasJs (val) {
     return val.startsWith('js-');
   };
 
   if (vnode.attributes.class !== undefined) {
-    jsClasses = vnode.attributes.class.split(' ').filter(_hasJs);
+    let jsClasses = vnode.attributes.class.split(' ').filter(_hasJs);
 
-    for (i; i < jsClasses.length; i++) {
+    for (let i = 0; i < jsClasses.length; i++) {
       let jsClass = jsClasses[i];
       let f = jsClass.substring('js-'.length);
 
@@ -20,9 +17,9 @@ export default function getLib (vnode, jsLib) {
       }
     }
 
-    for (func in lib) {
+    for (let func in lib) {
       try {
-        (lib[func])();
+        (lib[func])(args);
       } catch (error) {
         console.error(error.stack);
       }

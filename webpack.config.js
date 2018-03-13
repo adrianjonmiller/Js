@@ -8,13 +8,27 @@ const env  = require('yargs').argv.env; // use --env with webpack 2
 const UglifyJsPlugin = webpack.optimize.UglifyJsPlugin;
 let libraryName = 'Js';
 
-let plugins = [], outputFile, outputPath;
+let plugins = [], outputFile, outputPath, entry;
 
 if (env === 'build') {
   plugins.push(new UglifyJsPlugin({ minimize: true }));
+  entry = __dirname + '/src/index.js';
   outputFile = libraryName + '.min.js';
   outputPath = __dirname + '/lib';
+} if (env === 'demo') {
+  entry = path.join(__dirname + '/demo/app/app.js');
+  outputFile = '[name].js';
+  outputPath = __dirname + '/demo';
+  plugins.push(new BrowserSyncPlugin({
+      host: 'localhost',
+      port: 3100,
+      server: {
+        baseDir: ['demo']
+      },
+      files: [outputPath + '/*']
+    }));
 } else {
+  entry = path.join(__dirname + 'src/index.js');
   outputFile = '[name].js';
   outputPath = __dirname + '/demo';
   plugins.push(new BrowserSyncPlugin({
@@ -27,11 +41,9 @@ if (env === 'build') {
     }));
 }
 
+
 const config = {
-  entry: {
-    js:  __dirname + '/src/index.js',
-    app: __dirname + '/demo/app/app.js'
-  },
+  entry: entry,
   devtool: 'source-map',
   output: {
     path: outputPath,

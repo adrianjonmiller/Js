@@ -1,16 +1,11 @@
 import navItem from './templates/navItem.handlebars';
 
 export default function () {
-  var styles = {
-    background: 'blue'
-  }
+  var li = document.createElement('li');
 
-  for (var i = 0; i < 1; i++) {
-    var li = navItem({
-      link: i
-    });
-    this.addChild(li)
+  for (let i = 0; i < 10; i++) {
+    let newLi = li.cloneNode(true);
+    newLi.classList.add("js-headerLink")
+    var item = this.addChild(newLi, i);
   }
-
-  this.setStyle(styles)
 }

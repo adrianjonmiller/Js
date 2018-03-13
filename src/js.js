@@ -1,16 +1,20 @@
+import Data from './data';
 import getAttributes from './getAttributes';
 import getChildren from './getChildren';
 import getLib from './getLib';
-import getStyles from './getStyles';
 import getTagName from './getTagName';
 import getTemplates from './getTemplates';
-import styleNode from './styleNode';
+import createStyleNode from './styleNode';
 import updateStyles from './updateStyles';
 import utils from './utils';
 
 export default class Js {
   constructor (args) {
-    args.$node.setAttribute('id', args.uid);
+    var styles = {};
+    var styleNode = createStyleNode();
+    this.data = {}
+
+    var libArgs = args.args !== undefined ? args.args : null;
 
     // Reference to the vnode parent
     if (args.parent !== undefined) {
@@ -26,6 +30,8 @@ export default class Js {
 
     // Create the UID of the vnode
     if (args.uid !== undefined) {
+      args.$node.setAttribute('id', args.uid);
+
       Object.defineProperty(this, 'uid', {
         get () {
           return args.uid;
@@ -44,6 +50,21 @@ export default class Js {
       set () {
         console.log('Can\'t redefine document node');
       }
+    });
+
+    // Set styles
+    Object.defineProperty(this, 'styles', {
+      get () {
+        return styles;
+      },
+      set (value) {
+        for (let key in value) {
+          styles[key] = value[key];
+        }
+
+        updateStyles(styleNode, styles, this.uid);
+      },
+      configurable: true
     });
 
     // Import the lib from the parent
@@ -71,67 +92,41 @@ export default class Js {
     this.attributes = getAttributes(args.$node);
     this.tagName = getTagName(args.$node);
     this.childNodes = getChildren(args.$node, args.lib, this);
-    this.styles = getStyles(args.$node, args.uid);
     this.templates = getTemplates(args.$node);
 
-    this._styleNode = styleNode(this.styles, this.uid, this.node);
-
-    this.lib = getLib(this, args.lib);
+    this.lib = getLib(this, args.lib, libArgs);
   }
 
-  addChild ($child, cb) {
-    let id = '';
+  addChild ($newNodes, args, cb) {
+    var children = {}
 
-    if (typeof $child === 'string') {
-      $child = document.createRange().createContextualFragment($child);
-    }
+    switch ($newNodes.nodeType) {
+      case 1:
+        let uid = utils.uid();
+        let frag = document.createDocumentFragment();
 
-    if ($child.nodeType === 11) {
-      for (let i = 0; i < $child.childNodes.length; i++) {
-        let $node = $child.childNodes[i];
+        this.childNodes[uid] = new Js({
+          $node: $newNodes,
+          parent: this,
+          lib: this._jsLib,
+          uid: uid,
+          args: args
+        });
 
-        id = utils.uid();
+        requestAnimationFrame(() => {
+          this.node.appendChild(frag.appendChild($newNodes));
+        });
 
-        if ($node.nodeType === 1) {
-          this.childNodes[id] = new Js({
-            $node: $node,
-            parent: this,
-            lib: this._jsLib,
-            uid: id
-          });
-        }
-      }
+        return this.childNodes[uid]
+        break;
 
-      requestAnimationFrame(() => {
-        this.node.appendChild($child);
-      });
+      case 11:
 
-      if (typeof cb === 'function') {
-        cb(this.childNodes[id]);
-      }
-      return;
-    }
-
-    id = utils.uid();
-    let frag = document.createDocumentFragment();
-
-    this.childNodes[id] = new Js({
-      $node: $child,
-      parent: this,
-      lib: this._jsLib,
-      uid: id
-    });
-
-    requestAnimationFrame(() => {
-      this.node.appendChild(frag.appendChild($child));
-    });
-
-    if (typeof cb === 'function') {
-      cb(this.childNodes[id]);
+        break;
     }
   };
 
-  bind () {
+  bind (data) {
     var $node = this.node;
 
     while ($node.firstChild) {
@@ -219,6 +214,25 @@ export default class Js {
     return result;
   }
 
+  model (cb) {
+    (function temp (data, parent) {
+      for (let key in data) {
+        if (typeof data[key] !== 'object') {
+          let dataObj = new Data(data, key);
+
+          Object.defineProperty(parent, key, {
+            get: () => dataObj,
+            configurable: true
+          });
+        } else {
+          parent[key] = parent[key] || {};
+          temp(data[key], parent[key]);
+        }
+      }
+      return parent;
+    })(cb(), this.data);
+  };
+
   remove () {
     this.node.parentNode.removeChild(this.node);
     delete this.parent.childNodes[this._uid];
@@ -231,53 +245,6 @@ export default class Js {
 
     if (this.node.attributes[attribute] !== this.attributes[attributeCamel]) {
       this.node.setAttribute(attribute, this.attributes[utils.dashToCamelCase(attribute)]);
-    }
-  }
-
-  setStyle (...args) {
-
-    switch (args.length) {
-      case 1:
-        if (typeof args[0] === 'object') {
-          Object.keys(args[0]).map((key, index, array) => {
-            this.styles[utils.dashToCamelCase(key)] = args[0][key];
-
-            if (index === array.length - 1) {
-              updateStyles(this._styleNode(), this.styles, this.uid);
-            }
-          });
-        }
-        break;
-
-      case 2:
-        if (typeof args[0] === 'object') {
-          Object.keys(args[0]).map((key, index, array) => {
-            this.styles[utils.dashToCamelCase(key)] = args[0][key];
-
-            if (index === array.length - 1) {
-              updateStyles(this._styleNode(), this.styles, this.uid, () => {
-                if (typeof args[1] === 'function') {
-                  args[1]();
-                }
-              });
-            }
-          });
-        } else if (typeof args[0] === 'string') {
-          this.styles[args[0]] = args[1];
-
-          updateStyles(this._styleNode(), this.styles, this.uid);
-        }
-        break;
-
-      case 3:
-        if (typeof args[0] === 'string') {
-          this.styles[args[0]] = args[1];
-
-          updateStyles(this._styleNode(), this.styles, this.uid, () => {
-            args[2]();
-          });
-        }
-        break;
     }
   }
 }

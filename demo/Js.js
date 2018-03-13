@@ -73,12 +73,11 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 17);
+/******/ 	return __webpack_require__(__webpack_require__.s = 5);
 /******/ })
 /************************************************************************/
 /******/ ([
-/* 0 */,
-/* 1 */
+/* 0 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -104,8 +103,8 @@ exports.default = {
 module.exports = exports['default'];
 
 /***/ }),
-/* 2 */,
-/* 3 */
+/* 1 */,
+/* 2 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -119,39 +118,39 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _getAttributes = __webpack_require__(11);
+var _getAttributes = __webpack_require__(6);
 
 var _getAttributes2 = _interopRequireDefault(_getAttributes);
 
-var _getChildren = __webpack_require__(12);
+var _getChildren = __webpack_require__(7);
 
 var _getChildren2 = _interopRequireDefault(_getChildren);
 
-var _getLib = __webpack_require__(13);
+var _getLib = __webpack_require__(8);
 
 var _getLib2 = _interopRequireDefault(_getLib);
 
-var _getStyles = __webpack_require__(14);
+var _getStyles = __webpack_require__(9);
 
 var _getStyles2 = _interopRequireDefault(_getStyles);
 
-var _getTagName = __webpack_require__(15);
+var _getTagName = __webpack_require__(10);
 
 var _getTagName2 = _interopRequireDefault(_getTagName);
 
-var _getTemplates = __webpack_require__(16);
+var _getTemplates = __webpack_require__(11);
 
 var _getTemplates2 = _interopRequireDefault(_getTemplates);
 
-var _styleNode = __webpack_require__(18);
+var _styleNode = __webpack_require__(12);
 
 var _styleNode2 = _interopRequireDefault(_styleNode);
 
-var _updateStyles = __webpack_require__(4);
+var _updateStyles = __webpack_require__(3);
 
 var _updateStyles2 = _interopRequireDefault(_updateStyles);
 
-var _utils = __webpack_require__(1);
+var _utils = __webpack_require__(0);
 
 var _utils2 = _interopRequireDefault(_utils);
 
@@ -462,7 +461,7 @@ exports.default = Js;
 module.exports = exports['default'];
 
 /***/ }),
-/* 4 */
+/* 3 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -504,7 +503,7 @@ exports.default = function (styleNode, styles, uid, cb) {
   });
 };
 
-var _utils = __webpack_require__(1);
+var _utils = __webpack_require__(0);
 
 var _utils2 = _interopRequireDefault(_utils);
 
@@ -513,50 +512,8 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 module.exports = exports['default'];
 
 /***/ }),
-/* 5 */,
-/* 6 */,
-/* 7 */,
-/* 8 */,
-/* 9 */,
-/* 10 */,
-/* 11 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = getAttributes;
-
-var _utils = __webpack_require__(1);
-
-var _utils2 = _interopRequireDefault(_utils);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function getAttributes($node) {
-  var attributes = {};
-
-  if (!$node.attributes) {
-    return {};
-  }
-
-  for (var i = 0; i < $node.attributes.length; i++) {
-    var attributeName = $node.attributes[i].nodeName;
-
-    if (attributeName !== 'style') {
-      attributes[_utils2.default.dashToCamelCase(attributeName)] = $node.attributes[i].nodeValue;
-    }
-  }
-
-  return attributes;
-}
-module.exports = exports['default'];
-
-/***/ }),
-/* 12 */
+/* 4 */,
+/* 5 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -566,211 +523,11 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-exports.default = function ($node, lib, parent) {
-  var $children = $node.childNodes;
-  var length = $children.length;
-  var children = {};
-
-  if (length === 0) {
-    return null;
-  }
-
-  for (var i = 0; i < length; i++) {
-    var $child = $children[i];
-    var uid = _utils2.default.uid();
-
-    if ($child.nodeType === 1) {
-      uid = $child.getAttribute('id') ? $child.getAttribute('id') : uid;
-      children[uid] = new _js2.default({
-        $node: $child,
-        parent: parent,
-        lib: lib,
-        uid: uid
-      });
-    }
-  }
-
-  return children;
-};
-
-var _js = __webpack_require__(3);
+var _js = __webpack_require__(2);
 
 var _js2 = _interopRequireDefault(_js);
 
-var _utils = __webpack_require__(1);
-
-var _utils2 = _interopRequireDefault(_utils);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-;
-module.exports = exports['default'];
-
-/***/ }),
-/* 13 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = getLib;
-function getLib(vnode, jsLib) {
-  var lib = {};
-  var jsClasses = [];
-  var func;
-  var i = 0;
-
-  function _hasJs(val) {
-    return val.startsWith('js-');
-  };
-
-  if (vnode.attributes.class !== undefined) {
-    jsClasses = vnode.attributes.class.split(' ').filter(_hasJs);
-
-    for (i; i < jsClasses.length; i++) {
-      var jsClass = jsClasses[i];
-      var f = jsClass.substring('js-'.length);
-
-      if (jsLib[f]) {
-        lib[f] = jsLib[f].bind(vnode);
-      }
-    }
-
-    for (func in lib) {
-      try {
-        lib[func]();
-      } catch (error) {
-        console.error(error.stack);
-      }
-    }
-  }
-
-  return lib;
-};
-module.exports = exports['default'];
-
-/***/ }),
-/* 14 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-exports.default = function ($node, uid) {
-  var styles = {};
-
-  if (!$node.attributes) {
-    return {};
-  }
-
-  for (var i = 0; i < $node.attributes.length; i++) {
-    var attributeName = $node.attributes[i].nodeName;
-
-    if (attributeName === 'style') {
-      var styleStrings = $node.attributes[i].nodeValue.split(';');
-
-      for (var _i in styleStrings) {
-        if (styleStrings[_i].trim() !== '') {
-          var styleString = styleStrings[_i].split(':');
-          var value = styleString.slice(1, styleString.length);
-
-          styles[_utils2.default.dashToCamelCase(styleString[0].trim())] = value.join('').trim();
-        }
-      }
-    }
-  }
-
-  return styles;
-};
-
-var _utils = __webpack_require__(1);
-
-var _utils2 = _interopRequireDefault(_utils);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-module.exports = exports['default'];
-
-/***/ }),
-/* 15 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = getTagName;
-function getTagName($node) {
-  return $node.tagName ? $node.tagName.toLowerCase() : $node.nodeName;
-};
-module.exports = exports["default"];
-
-/***/ }),
-/* 16 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-exports.default = function ($node, data) {
-  var $children = $node.childNodes;
-  var length = $children.length;
-  var templates = {};
-
-  if (length === 0) {
-    return null;
-  }
-
-  for (var i in $children) {
-    var $child = $children[i];
-
-    if ($child.tagName === 'TEMPLATE') {
-      var uid = $child.getAttribute('id') ? $child.getAttribute('id') : _utils2.default.uid();
-
-      templates[uid] = $child.content;
-    }
-  }
-
-  return templates;
-};
-
-var _utils = __webpack_require__(1);
-
-var _utils2 = _interopRequireDefault(_utils);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-module.exports = exports['default'];
-
-/***/ }),
-/* 17 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var _js = __webpack_require__(3);
-
-var _js2 = _interopRequireDefault(_js);
-
-var _utils = __webpack_require__(1);
+var _utils = __webpack_require__(0);
 
 var _utils2 = _interopRequireDefault(_utils);
 
@@ -822,7 +579,244 @@ exports.default = JsDash;
 module.exports = exports['default'];
 
 /***/ }),
-/* 18 */
+/* 6 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = getAttributes;
+
+var _utils = __webpack_require__(0);
+
+var _utils2 = _interopRequireDefault(_utils);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function getAttributes($node) {
+  var attributes = {};
+
+  if (!$node.attributes) {
+    return {};
+  }
+
+  for (var i = 0; i < $node.attributes.length; i++) {
+    var attributeName = $node.attributes[i].nodeName;
+
+    if (attributeName !== 'style') {
+      attributes[_utils2.default.dashToCamelCase(attributeName)] = $node.attributes[i].nodeValue;
+    }
+  }
+
+  return attributes;
+}
+module.exports = exports['default'];
+
+/***/ }),
+/* 7 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+exports.default = function ($node, lib, parent) {
+  var $children = $node.childNodes;
+  var length = $children.length;
+  var children = {};
+
+  if (length === 0) {
+    return null;
+  }
+
+  for (var i = 0; i < length; i++) {
+    var $child = $children[i];
+    var uid = _utils2.default.uid();
+
+    if ($child.nodeType === 1) {
+      uid = $child.getAttribute('id') ? $child.getAttribute('id') : uid;
+      children[uid] = new _js2.default({
+        $node: $child,
+        parent: parent,
+        lib: lib,
+        uid: uid
+      });
+    }
+  }
+
+  return children;
+};
+
+var _js = __webpack_require__(2);
+
+var _js2 = _interopRequireDefault(_js);
+
+var _utils = __webpack_require__(0);
+
+var _utils2 = _interopRequireDefault(_utils);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+;
+module.exports = exports['default'];
+
+/***/ }),
+/* 8 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = getLib;
+function getLib(vnode, jsLib) {
+  var lib = {};
+  var jsClasses = [];
+  var func;
+  var i = 0;
+
+  function _hasJs(val) {
+    return val.startsWith('js-');
+  };
+
+  if (vnode.attributes.class !== undefined) {
+    jsClasses = vnode.attributes.class.split(' ').filter(_hasJs);
+
+    for (i; i < jsClasses.length; i++) {
+      var jsClass = jsClasses[i];
+      var f = jsClass.substring('js-'.length);
+
+      if (jsLib[f]) {
+        lib[f] = jsLib[f].bind(vnode);
+      }
+    }
+
+    for (func in lib) {
+      try {
+        lib[func]();
+      } catch (error) {
+        console.error(error.stack);
+      }
+    }
+  }
+
+  return lib;
+};
+module.exports = exports['default'];
+
+/***/ }),
+/* 9 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+exports.default = function ($node, uid) {
+  var styles = {};
+
+  if (!$node.attributes) {
+    return {};
+  }
+
+  for (var i = 0; i < $node.attributes.length; i++) {
+    var attributeName = $node.attributes[i].nodeName;
+
+    if (attributeName === 'style') {
+      var styleStrings = $node.attributes[i].nodeValue.split(';');
+
+      for (var _i in styleStrings) {
+        if (styleStrings[_i].trim() !== '') {
+          var styleString = styleStrings[_i].split(':');
+          var value = styleString.slice(1, styleString.length);
+
+          styles[_utils2.default.dashToCamelCase(styleString[0].trim())] = value.join('').trim();
+        }
+      }
+    }
+  }
+
+  return styles;
+};
+
+var _utils = __webpack_require__(0);
+
+var _utils2 = _interopRequireDefault(_utils);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+module.exports = exports['default'];
+
+/***/ }),
+/* 10 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = getTagName;
+function getTagName($node) {
+  return $node.tagName ? $node.tagName.toLowerCase() : $node.nodeName;
+};
+module.exports = exports["default"];
+
+/***/ }),
+/* 11 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+exports.default = function ($node, data) {
+  var $children = $node.childNodes;
+  var length = $children.length;
+  var templates = {};
+
+  if (length === 0) {
+    return null;
+  }
+
+  for (var i in $children) {
+    var $child = $children[i];
+
+    if ($child.tagName === 'TEMPLATE') {
+      var uid = $child.getAttribute('id') ? $child.getAttribute('id') : _utils2.default.uid();
+
+      templates[uid] = $child.content;
+    }
+  }
+
+  return templates;
+};
+
+var _utils = __webpack_require__(0);
+
+var _utils2 = _interopRequireDefault(_utils);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+module.exports = exports['default'];
+
+/***/ }),
+/* 12 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -846,7 +840,7 @@ exports.default = function (styles, uid, $node) {
   };
 };
 
-var _updateStyles = __webpack_require__(4);
+var _updateStyles = __webpack_require__(3);
 
 var _updateStyles2 = _interopRequireDefault(_updateStyles);
 
