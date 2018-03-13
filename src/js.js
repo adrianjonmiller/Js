@@ -10,11 +10,11 @@ import utils from './utils';
 
 export default class Js {
   constructor (args) {
+    var libArgs = args.args !== undefined ? args.args : null;
     var styles = {};
     var styleNode = createStyleNode();
-    this.data = {}
 
-    var libArgs = args.args !== undefined ? args.args : null;
+    this.data = {};
 
     // Reference to the vnode parent
     if (args.parent !== undefined) {
@@ -98,12 +98,11 @@ export default class Js {
   }
 
   addChild ($newNodes, args, cb) {
-    var children = {}
+    var uid;
 
     switch ($newNodes.nodeType) {
       case 1:
-        let uid = utils.uid();
-        let frag = document.createDocumentFragment();
+        uid = utils.uid();
 
         this.childNodes[uid] = new Js({
           $node: $newNodes,
@@ -114,15 +113,37 @@ export default class Js {
         });
 
         requestAnimationFrame(() => {
-          this.node.appendChild(frag.appendChild($newNodes));
+          this.node.appendChild($newNodes);
         });
 
-        return this.childNodes[uid]
-        break;
+        if (typeof cb === 'function') {
+          cb(this.childNodes[uid]);
+        }
+
+        return this.childNodes[uid];
 
       case 11:
+        uid = utils.uid();
 
-        break;
+        this.childNodes[uid] = new Js({
+          $node: $newNodes,
+          parent: this,
+          lib: this._jsLib,
+          uid: uid,
+          args: args
+        });
+
+        requestAnimationFrame(() => {
+          this.node.appendChild($newNodes);
+        });
+
+        if (typeof cb === 'function') {
+          cb(this.childNodes[uid]);
+        }
+
+        return this.childNodes[uid];
+      default:
+        return {};
     }
   };
 

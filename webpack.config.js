@@ -6,16 +6,19 @@ const webpack = require('webpack');
 const env  = require('yargs').argv.env; // use --env with webpack 2
 
 const UglifyJsPlugin = webpack.optimize.UglifyJsPlugin;
-let libraryName = 'Js';
+let libraryName = 'JsDash';
 
 let plugins = [], outputFile, outputPath, entry;
 
+
+
 if (env === 'build') {
   plugins.push(new UglifyJsPlugin({ minimize: true }));
-  entry = __dirname + '/src/index.js';
+  entry = path.join(__dirname + '/src/index.js');
   outputFile = libraryName + '.min.js';
-  outputPath = __dirname + '/lib';
-} if (env === 'demo') {
+  outputPath = path.join(__dirname + '/lib');
+
+} else if (env === 'demo') {
   entry = path.join(__dirname + '/demo/app/app.js');
   outputFile = '[name].js';
   outputPath = __dirname + '/demo';
@@ -28,7 +31,7 @@ if (env === 'build') {
       files: [outputPath + '/*']
     }));
 } else {
-  entry = path.join(__dirname + 'src/index.js');
+  entry = path.join(__dirname + '/src/index.js');
   outputFile = '[name].js';
   outputPath = __dirname + '/demo';
   plugins.push(new BrowserSyncPlugin({

@@ -16,12 +16,12 @@ export default class Data {
   set (value) {
     this.parent[this.key] = value;
     if (typeof this.cb === 'function') {
-      this.cb(value)
+      this.cb(value);
     }
   }
 
   bind (cb) {
-    this.cb = cb
-    cb(this.val())
+    this.cb = cb;
+    cb(this.val());
   }
 }
