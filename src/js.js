@@ -161,8 +161,8 @@ export default class Js {
 
     if (data !== undefined && typeof data === 'function') {
       data((val, oldval) => {
-        newNode.nodeValue = val
-      })
+        newNode.nodeValue = val;
+      });
     }
   }
 
@@ -238,7 +238,7 @@ export default class Js {
     }
 
     if (result.length === 1) {
-      return result[0]
+      return result[0];
     }
 
     return result;
@@ -249,14 +249,15 @@ export default class Js {
       for (let key in data) {
         if (typeof data[key] !== 'object') {
           let dataObj = new Data(data, key);
-          watch[key] = dataObj.watch.bind(dataObj)
+
+          watch[key] = dataObj.watch.bind(dataObj);
 
           Object.defineProperty(parent, key, {
             get: () => {
-              dataObj.val()
+              dataObj.val();
             },
             set: (value) => {
-              dataObj.set(value)
+              dataObj.set(value);
             },
             configurable: true
           });

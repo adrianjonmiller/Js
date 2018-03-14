@@ -16,6 +16,7 @@ export default class Data {
   set (value) {
     if (this.parent[this.key] !== value) {
       let old = this.parent[this.key];
+
       this.parent[this.key] = value;
 
       if (typeof this.cb === 'function') {
