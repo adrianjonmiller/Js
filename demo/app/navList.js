@@ -8,4 +8,8 @@ export default function () {
     newLi.classList.add("js-headerLink")
     var item = this.addChild(newLi, i);
   }
+
+  this.find('class', 'js-headerLink', function (el) {
+    el.data.name = 'not the same'
+  })
 }

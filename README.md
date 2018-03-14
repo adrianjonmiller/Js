@@ -82,7 +82,7 @@ js.dash.functionName = function () {
 
 ### Methods attached to 'this'
 
-* addChild(element, callback()) - Adds a child to the element
+* addChild(element, callback()) - Adds a child to the element, must pass either a document fragment, or an element
 * setAttribute(attribute, value) - Set any attribute on the element
 * emit(eventName) - Emits a custom event
 * event(eventName) - Listens for an event

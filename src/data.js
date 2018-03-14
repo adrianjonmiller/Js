@@ -14,13 +14,17 @@ export default class Data {
   }
 
   set (value) {
-    this.parent[this.key] = value;
-    if (typeof this.cb === 'function') {
-      this.cb(value);
+    if (this.parent[this.key] !== value) {
+      let old = this.parent[this.key];
+      this.parent[this.key] = value;
+
+      if (typeof this.cb === 'function') {
+        this.cb(value, old);
+      }
     }
   }
 
-  bind (cb) {
+  watch (cb) {
     this.cb = cb;
     cb(this.val());
   }

@@ -13,13 +13,13 @@ export default function getLib (vnode, jsLib, args) {
       let f = jsClass.substring('js-'.length);
 
       if (jsLib[f]) {
-        lib[f] = jsLib[f].bind(vnode);
+        lib[f] = jsLib[f].bind(vnode, args);
       }
     }
 
     for (let func in lib) {
       try {
-        (lib[func])(args);
+        (lib[func])();
       } catch (error) {
         console.error(error.stack);
       }

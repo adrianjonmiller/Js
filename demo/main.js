@@ -358,6 +358,7 @@ var Js = function () {
     var styleNode = (0, _styleNode2.default)();
 
     this.data = {};
+    this.watch = {};
 
     // Reference to the vnode parent
     if (args.parent !== undefined) {
@@ -499,11 +500,19 @@ var Js = function () {
     value: function bind(data) {
       var $node = this.node;
 
-      while ($node.firstChild) {
-        $node.removeChild($node.firstChild);
+      if (!$node.childNodes.length > 1) {
+        while ($node.firstChild) {
+          $node.removeChild($node.firstChild);
+        }
       }
 
-      return $node.appendChild(document.createTextNode(''));
+      var newNode = $node.appendChild(document.createTextNode(''));
+
+      if (data !== undefined && typeof data === 'function') {
+        data(function (val, oldval) {
+          newNode.nodeValue = val;
+        });
+      }
     }
   }, {
     key: 'emit',
@@ -525,15 +534,11 @@ var Js = function () {
       if (Array.isArray(events)) {
         events.map(function (event) {
           this.node.addEventListener(event, function (e) {
-            e.stopPropagation();
-            e.preventDefault();
             cb(e);
           }, false);
         }.bind(this));
       } else {
         this.node.addEventListener(events, function (e) {
-          e.stopPropagation();
-          e.preventDefault();
           cb(e);
         }, false);
       }
@@ -588,31 +593,40 @@ var Js = function () {
           break;
       }
 
+      if (result.length === 1) {
+        return result[0];
+      }
+
       return result;
     }
   }, {
     key: 'model',
     value: function model(cb) {
-      (function temp(data, parent) {
+      (function temp(data, parent, watch) {
         for (var key in data) {
           if (_typeof(data[key]) !== 'object') {
             (function () {
               var dataObj = new _data2.default(data, key);
+              watch[key] = dataObj.watch.bind(dataObj);
 
               Object.defineProperty(parent, key, {
                 get: function get() {
-                  return dataObj;
+                  dataObj.val();
+                },
+                set: function set(value) {
+                  dataObj.set(value);
                 },
                 configurable: true
               });
             })();
           } else {
             parent[key] = parent[key] || {};
-            temp(data[key], parent[key]);
+            watch[key] = watch[key] || {};
+            temp(data[key], parent[key], watch[key]);
           }
         }
         return parent;
-      })(cb(), this.data);
+      })(cb(), this.data, this.watch);
     }
   }, {
     key: 'remove',
@@ -781,10 +795,16 @@ Object.defineProperty(exports, "__esModule", {
 });
 
 exports.default = function (args) {
-  this.bind().nodeValue = args;
+  this.model(function () {
+    return {
+      name: 'Same'
+    };
+  });
+
+  this.bind(this.watch.name);
 };
 
-module.exports = exports["default"];
+module.exports = exports['default'];
 
 /***/ }),
 /* 7 */
@@ -820,6 +840,10 @@ exports.default = function () {
     newLi.classList.add("js-headerLink");
     var item = this.addChild(newLi, i);
   }
+
+  this.find('class', 'js-headerLink', function (el) {
+    el.data.name = 'not the same';
+  });
 };
 
 var _navItem = __webpack_require__(19);
@@ -917,8 +941,24 @@ js.dash.headerLink = __webpack_require__(6);
 js.dash.navList = __webpack_require__(8);
 
 js.dash.form = function () {
-  var inputs = this.find('class', 'js-input');
-  console.log(inputs);
+  var input = this.find('class', 'js-input');
+  var value = this.find('class', 'js-value');
+
+  input.event('keyup', function (e) {
+    console.log(e.target.value);
+    console.log(input.value);
+    value.data.value = input.value;
+  });
+};
+
+js.dash.value = function () {
+  this.model(function () {
+    return {
+      value: ''
+    };
+  });
+
+  this.bind(this.watch.value);
 };
 
 /***/ }),
@@ -958,14 +998,18 @@ var Data = function () {
   }, {
     key: 'set',
     value: function set(value) {
-      this.parent[this.key] = value;
-      if (typeof this.cb === 'function') {
-        this.cb(value);
+      if (this.parent[this.key] !== value) {
+        var old = this.parent[this.key];
+        this.parent[this.key] = value;
+
+        if (typeof this.cb === 'function') {
+          this.cb(value, old);
+        }
       }
     }
   }, {
-    key: 'bind',
-    value: function bind(cb) {
+    key: 'watch',
+    value: function watch(cb) {
       this.cb = cb;
       cb(this.val());
     }
@@ -1091,13 +1135,13 @@ function getLib(vnode, jsLib, args) {
       var f = jsClass.substring('js-'.length);
 
       if (jsLib[f]) {
-        lib[f] = jsLib[f].bind(vnode);
+        lib[f] = jsLib[f].bind(vnode, args);
       }
     }
 
     for (var func in lib) {
       try {
-        lib[func](args);
+        lib[func]();
       } catch (error) {
         console.error(error.stack);
       }

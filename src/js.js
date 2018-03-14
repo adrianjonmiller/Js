@@ -15,6 +15,7 @@ export default class Js {
     var styleNode = createStyleNode();
 
     this.data = {};
+    this.watch = {};
 
     // Reference to the vnode parent
     if (args.parent !== undefined) {
@@ -150,11 +151,19 @@ export default class Js {
   bind (data) {
     var $node = this.node;
 
-    while ($node.firstChild) {
-      $node.removeChild($node.firstChild);
+    if (!$node.childNodes.length > 1) {
+      while ($node.firstChild) {
+        $node.removeChild($node.firstChild);
+      }
     }
 
-    return $node.appendChild(document.createTextNode(''));
+    let newNode = $node.appendChild(document.createTextNode(''));
+
+    if (data !== undefined && typeof data === 'function') {
+      data((val, oldval) => {
+        newNode.nodeValue = val
+      })
+    }
   }
 
   emit (eventName) {
@@ -174,15 +183,11 @@ export default class Js {
     if (Array.isArray(events)) {
       events.map(function (event) {
         this.node.addEventListener(event, (e) => {
-          e.stopPropagation();
-          e.preventDefault();
           cb(e);
         }, false);
       }.bind(this));
     } else {
       this.node.addEventListener(events, (e) => {
-        e.stopPropagation();
-        e.preventDefault();
         cb(e);
       }, false);
     }
@@ -232,26 +237,37 @@ export default class Js {
         break;
     }
 
+    if (result.length === 1) {
+      return result[0]
+    }
+
     return result;
   }
 
   model (cb) {
-    (function temp (data, parent) {
+    (function temp (data, parent, watch) {
       for (let key in data) {
         if (typeof data[key] !== 'object') {
           let dataObj = new Data(data, key);
+          watch[key] = dataObj.watch.bind(dataObj)
 
           Object.defineProperty(parent, key, {
-            get: () => dataObj,
+            get: () => {
+              dataObj.val()
+            },
+            set: (value) => {
+              dataObj.set(value)
+            },
             configurable: true
           });
         } else {
           parent[key] = parent[key] || {};
-          temp(data[key], parent[key]);
+          watch[key] = watch[key] || {};
+          temp(data[key], parent[key], watch[key]);
         }
       }
       return parent;
-    })(cb(), this.data);
+    })(cb(), this.data, this.watch);
   };
 
   remove () {
