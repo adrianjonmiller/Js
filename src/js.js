@@ -214,7 +214,7 @@ export default class Js {
               args[1](childNode);
               result.push(childNode);
             }
-          } else if (childNode.attributes[args[0]] === args[1]) {
+          } else if (childNode.attributes[args[0]].split(' ').includes(args[1])) {
             result.push(childNode);
           } else {
             // Error not a good query

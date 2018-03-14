@@ -6,7 +6,7 @@ const webpack = require('webpack');
 const env  = require('yargs').argv.env; // use --env with webpack 2
 
 const UglifyJsPlugin = webpack.optimize.UglifyJsPlugin;
-let libraryName = 'JsDash';
+let libraryName = 'Js';
 
 let plugins = [], outputFile, outputPath, entry;
 

@@ -8,13 +8,7 @@ js.dash.headerLink = require('./headerLink')
 js.dash.navList = require('./navList')
 
 
-// js.dash.form = function () {
-//   this.find('class', 'js-input', (input) => {
-//     input.data(() => {
-//       data: 'success'
-//     })
-//     this.find('class', 'js-value', (span) => {
-//
-//     })
-//   })
-// }
+js.dash.form = function () {
+  var inputs = this.find('class', 'js-input');
+  console.log(inputs)
+}
