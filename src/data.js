@@ -2,7 +2,7 @@ export default class Data {
   constructor (parent, key) {
     this.parent = parent;
     this.key = key;
-    this.cb = '';
+    this.cb = [];
   }
 
   val () {
@@ -18,15 +18,16 @@ export default class Data {
       let old = this.parent[this.key];
 
       this.parent[this.key] = value;
-
-      if (typeof this.cb === 'function') {
-        this.cb(value, old);
-      }
+      this.cb.forEach((cb) => {
+        if (typeof cb === 'function') {
+          cb(value, old);
+        }
+      });
     }
   }
 
   watch (cb) {
-    this.cb = cb;
+    this.cb.push(cb);
     cb(this.val());
   }
 }

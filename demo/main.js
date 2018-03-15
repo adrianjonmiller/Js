@@ -593,10 +593,6 @@ var Js = function () {
           break;
       }
 
-      if (result.length === 1) {
-        return result[0];
-      }
-
       return result;
     }
   }, {
@@ -607,6 +603,7 @@ var Js = function () {
           if (_typeof(data[key]) !== 'object') {
             (function () {
               var dataObj = new _data2.default(data, key);
+
               watch[key] = dataObj.watch.bind(dataObj);
 
               Object.defineProperty(parent, key, {
@@ -776,12 +773,10 @@ Object.defineProperty(exports, "__esModule", {
 });
 
 exports.default = function () {
-  this.find('class', 'js-headerLink', function (item) {
-    // item.data.first.set('parent')
-  });
+  console.log(this);
 };
 
-module.exports = exports['default'];
+module.exports = exports["default"];
 
 /***/ }),
 /* 6 */
@@ -982,7 +977,7 @@ var Data = function () {
 
     this.parent = parent;
     this.key = key;
-    this.cb = '';
+    this.cb = [];
   }
 
   _createClass(Data, [{
@@ -1000,17 +995,19 @@ var Data = function () {
     value: function set(value) {
       if (this.parent[this.key] !== value) {
         var old = this.parent[this.key];
-        this.parent[this.key] = value;
 
-        if (typeof this.cb === 'function') {
-          this.cb(value, old);
-        }
+        this.parent[this.key] = value;
+        this.cb.forEach(function (cb) {
+          if (typeof cb === 'function') {
+            cb(value, old);
+          }
+        });
       }
     }
   }, {
     key: 'watch',
     value: function watch(cb) {
-      this.cb = cb;
+      this.cb.push(cb);
       cb(this.val());
     }
   }]);
