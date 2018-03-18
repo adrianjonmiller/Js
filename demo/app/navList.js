@@ -10,6 +10,7 @@ export default function () {
   }
 
   this.find('class', 'js-headerLink', function (el) {
+    console.log(el.data.name)
     el.data.name = 'not the same'
   })
 }

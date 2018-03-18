@@ -9,13 +9,11 @@ js.dash.navList = require('./navList')
 
 
 js.dash.form = function () {
-  var input = this.find('class', 'js-input');
-  var value = this.find('class', 'js-value');
+  var input = this.find('class', 'js-input')[0];
+  var value = this.find('class', 'js-value')[0];
 
   input.event('keyup', function (e) {
-    console.log(e.target.value)
-    console.log(input.value)
-    value.data.value = input.value
+    value.data.value = input.value;
   })
 }
 

@@ -356,6 +356,7 @@ var Js = function () {
     var libArgs = args.args !== undefined ? args.args : null;
     var styles = {};
     var styleNode = (0, _styleNode2.default)();
+    var attributes = {};
 
     this.data = {};
     this.watch = {};
@@ -432,6 +433,28 @@ var Js = function () {
           this.node.value = value;
         }
       });
+    }
+
+    for (var i = 0; i < args.$node.attributes.length; i++) {
+      var attributeName = _utils2.default.dashToCamelCase(args.$node.attributes[i].nodeName);
+      console.log(attributeName);
+
+      switch (attributeName) {
+        case 'style':
+          break;
+        case 'id':
+          attributes[attributeName] = args.$node.attributes[i].nodeValue;
+          Object.defineProperty(this, attributeName, {
+            get: function get() {
+              // return attributes[attributeName]
+            },
+            set: function set(val) {
+              // attributes[attributeName] = val
+            }
+          });
+
+          break;
+      }
     }
 
     this.attributes = (0, _getAttributes2.default)(args.$node);
@@ -608,7 +631,7 @@ var Js = function () {
 
               Object.defineProperty(parent, key, {
                 get: function get() {
-                  dataObj.val();
+                  return dataObj.val();
                 },
                 set: function set(value) {
                   dataObj.set(value);
@@ -837,6 +860,7 @@ exports.default = function () {
   }
 
   this.find('class', 'js-headerLink', function (el) {
+    console.log(el.data.name);
     el.data.name = 'not the same';
   });
 };
@@ -936,12 +960,10 @@ js.dash.headerLink = __webpack_require__(6);
 js.dash.navList = __webpack_require__(8);
 
 js.dash.form = function () {
-  var input = this.find('class', 'js-input');
-  var value = this.find('class', 'js-value');
+  var input = this.find('class', 'js-input')[0];
+  var value = this.find('class', 'js-value')[0];
 
   input.event('keyup', function (e) {
-    console.log(e.target.value);
-    console.log(input.value);
     value.data.value = input.value;
   });
 };

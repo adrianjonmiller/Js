@@ -13,6 +13,7 @@ export default class Js {
     var libArgs = args.args !== undefined ? args.args : null;
     var styles = {};
     var styleNode = createStyleNode();
+    var attributes = {};
 
     this.data = {};
     this.watch = {};
@@ -88,6 +89,28 @@ export default class Js {
           this.node.value = value;
         }
       });
+    }
+
+    for (let i = 0; i < args.$node.attributes.length; i++) {
+      let attributeName = utils.dashToCamelCase(args.$node.attributes[i].nodeName);
+      console.log(attributeName)
+
+      switch (attributeName) {
+        case 'style':
+          break;
+        case 'id':
+          attributes[attributeName] = args.$node.attributes[i].nodeValue;
+          Object.defineProperty(this, attributeName, {
+            get: () => {
+              // return attributes[attributeName]
+            },
+            set: (val) => {
+              // attributes[attributeName] = val
+            }
+          })
+
+          break;
+      }
     }
 
     this.attributes = getAttributes(args.$node);
@@ -250,7 +273,7 @@ export default class Js {
 
           Object.defineProperty(parent, key, {
             get: () => {
-              dataObj.val();
+              return dataObj.val();
             },
             set: (value) => {
               dataObj.set(value);
