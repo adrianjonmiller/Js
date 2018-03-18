@@ -313,17 +313,9 @@ var _data = __webpack_require__(11);
 
 var _data2 = _interopRequireDefault(_data);
 
-var _getAttributes = __webpack_require__(12);
-
-var _getAttributes2 = _interopRequireDefault(_getAttributes);
-
 var _getChildren = __webpack_require__(13);
 
 var _getChildren2 = _interopRequireDefault(_getChildren);
-
-var _getLib = __webpack_require__(14);
-
-var _getLib2 = _interopRequireDefault(_getLib);
 
 var _getTagName = __webpack_require__(15);
 
@@ -351,21 +343,30 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 var Js = function () {
   function Js(args) {
+    var _this = this;
+
     _classCallCheck(this, Js);
 
+    var $node = args.$node;
+    var parent = args.parent;
+    var jsLib = args.lib;
+    var uid = args.uid;
     var libArgs = args.args !== undefined ? args.args : null;
-    var styles = {};
     var styleNode = (0, _styleNode2.default)();
+    var lib = {};
+    var styles = {};
     var attributes = {};
 
     this.data = {};
     this.watch = {};
+    this.tagName = (0, _getTagName2.default)($node);
+    this.childNodes = (0, _getChildren2.default)($node, jsLib, this);
 
     // Reference to the vnode parent
-    if (args.parent !== undefined) {
+    if (parent !== undefined) {
       Object.defineProperty(this, 'parent', {
         get: function get() {
-          return args.parent;
+          return parent;
         },
         set: function set() {
           console.log('Can\'t change parent');
@@ -375,11 +376,11 @@ var Js = function () {
 
     // Create the UID of the vnode
     if (args.uid !== undefined) {
-      args.$node.setAttribute('id', args.uid);
+      $node.setAttribute('id', uid);
 
       Object.defineProperty(this, 'uid', {
         get: function get() {
-          return args.uid;
+          return uid;
         },
         set: function set() {
           console.log('Can\'t change UID');
@@ -390,85 +391,128 @@ var Js = function () {
     // Referencd to the document node
     Object.defineProperty(this, 'node', {
       get: function get() {
-        return args.$node;
+        return $node;
       },
       set: function set() {
         console.log('Can\'t redefine document node');
       }
     });
 
-    // Set styles
-    Object.defineProperty(this, 'styles', {
-      get: function get() {
-        return styles;
-      },
-      set: function set(value) {
-        for (var key in value) {
-          styles[key] = value[key];
-        }
-
-        (0, _updateStyles2.default)(styleNode, styles, this.uid);
-      },
-
-      configurable: true
-    });
-
     // Import the lib from the parent
     Object.defineProperty(this, '_jsLib', {
       get: function get() {
-        return args.lib;
+        return jsLib;
       },
       set: function set() {
         console.log('Can\'t set the lib');
       }
     });
 
-    // Setting value if an input
-    if (args.$node.tagName === 'INPUT') {
-      Object.defineProperty(this, 'value', {
-        get: function get() {
-          return this.node.value;
-        },
-        set: function set(value) {
-          this.node.value = value;
-        }
-      });
-    }
+    // Build attributes
 
-    for (var i = 0; i < args.$node.attributes.length; i++) {
-      var attributeName = _utils2.default.dashToCamelCase(args.$node.attributes[i].nodeName);
-      console.log(attributeName);
+    var _loop = function _loop(i) {
+      var attributeName = _utils2.default.dashToCamelCase($node.attributes[i].nodeName);
+      var attributeValue = $node.attributes[i].nodeValue;
+
+      function _hasJs(val) {
+        return val.startsWith('js-');
+      };
+
+      function _notHasJs(val) {
+        return !val.startsWith('js-');
+      };
 
       switch (attributeName) {
-        case 'style':
-          break;
         case 'id':
-          attributes[attributeName] = args.$node.attributes[i].nodeValue;
-          Object.defineProperty(this, attributeName, {
+          break;
+        case 'style':
+          Object.defineProperty(_this, 'style', {
             get: function get() {
-              // return attributes[attributeName]
+              return styles;
             },
-            set: function set(val) {
-              // attributes[attributeName] = val
+            set: function set(value) {
+              for (var key in value) {
+                styles[key] = value[key];
+              }
+
+              (0, _updateStyles2.default)(styleNode, styles, this.uid);
+            },
+
+            configurable: true
+          });
+          break;
+        case 'class':
+          attributes['class'] = attributeValue;
+          Object.defineProperty(_this, 'class', {
+            get: function get() {
+              return attributes.class;
+            },
+            set: function set(value) {
+              if (typeof value === 'string') {
+                attributes.class = value;
+              } else {
+                attributes.class = value.join(' ');
+              }
+              this.node.attributes.class.nodeValue = attributes.class;
+            },
+
+            configurable: true
+          });
+
+          Object.defineProperty(_this, 'lib', {
+            get: function get() {
+              return lib;
+            },
+            set: function set(value) {
+              console.log('Can\'t directly set this value');
+            },
+
+            configurable: true
+          });
+
+          attributeValue.split(' ').filter(_hasJs).forEach(function (functionClass, index, array) {
+            var functionName = functionClass.substring('js-'.length);
+
+            if (jsLib[functionName]) {
+              lib[functionName] = jsLib[functionName].bind(_this, args);
             }
           });
 
           break;
+        default:
+          attributes[attributeName] = $node.attributes[i].nodeValue;
+          Object.defineProperty(_this, attributeName, {
+            get: function get() {
+              return attributes[attributeName];
+            },
+            set: function set(val) {
+              if (attributes[attributeName] !== val) {
+                attributes[attributeName] = val;
+                _this.node.setAttribute(attribute, _this.attributes[_utils2.default.dashToCamelCase(attribute)]);
+              }
+            }
+          });
+          break;
       }
+    };
+
+    for (var i = 0; i < $node.attributes.length; i++) {
+      _loop(i);
     }
 
-    this.attributes = (0, _getAttributes2.default)(args.$node);
-    this.tagName = (0, _getTagName2.default)(args.$node);
-    this.childNodes = (0, _getChildren2.default)(args.$node, args.lib, this);
-    this.templates = (0, _getTemplates2.default)(args.$node);
-
-    this.lib = (0, _getLib2.default)(this, args.lib, libArgs);
+    for (var functionName in lib) {
+      try {
+        lib[functionName]();
+      } catch (error) {
+        console.error(error.stack);
+      }
+    }
   }
 
   _createClass(Js, [{
     key: 'addChild',
     value: function addChild($newNodes, args, cb) {
-      var _this = this;
+      var _this2 = this;
 
       var uid;
 
@@ -485,7 +529,7 @@ var Js = function () {
           });
 
           requestAnimationFrame(function () {
-            _this.node.appendChild($newNodes);
+            _this2.node.appendChild($newNodes);
           });
 
           if (typeof cb === 'function') {
@@ -506,7 +550,7 @@ var Js = function () {
           });
 
           requestAnimationFrame(function () {
-            _this.node.appendChild($newNodes);
+            _this2.node.appendChild($newNodes);
           });
 
           if (typeof cb === 'function') {
@@ -516,6 +560,18 @@ var Js = function () {
           return this.childNodes[uid];
         default:
           return {};
+      }
+    }
+  }, {
+    key: 'addClass',
+    value: function addClass(className) {
+      var classes = this.class.split(' ');
+
+      console.log();
+
+      if (!classes.includes(className)) {
+        classes.push(className);
+        this.class = classes.join(' ');
       }
     }
   }, {
@@ -585,7 +641,7 @@ var Js = function () {
       switch (args.length) {
         case 1:
           dig(this, function (childNode) {
-            if (childNode.attributes.hasOwnProperty(args[0])) {
+            if (childNode.hasOwnProperty(args[0])) {
               result.push(childNode);
             }
           });
@@ -594,11 +650,11 @@ var Js = function () {
         case 2:
           dig(this, function (childNode) {
             if (typeof args[1] === 'function') {
-              if (childNode.attributes.hasOwnProperty(args[0])) {
+              if (childNode.hasOwnProperty(args[0])) {
                 args[1](childNode);
                 result.push(childNode);
               }
-            } else if (childNode.attributes[args[0]].split(' ').includes(args[1])) {
+            } else if (childNode[args[0]].split(' ').includes(args[1])) {
               result.push(childNode);
             } else {
               // Error not a good query
@@ -608,7 +664,7 @@ var Js = function () {
 
         case 3:
           dig(this, function (childNode) {
-            if (childNode.attributes[args[0]] === args[1]) {
+            if (childNode[args[0]] === args[1]) {
               args[2](childNode);
               result.push(childNode);
             }
@@ -819,6 +875,10 @@ exports.default = function (args) {
     };
   });
 
+  this.event('mouseover', function () {
+    this.addClass('is-active');
+  }.bind(this));
+
   this.bind(this.watch.name);
 };
 
@@ -862,6 +922,7 @@ exports.default = function () {
   this.find('class', 'js-headerLink', function (el) {
     console.log(el.data.name);
     el.data.name = 'not the same';
+    // el.addClass('is-active')
   });
 };
 
@@ -929,7 +990,7 @@ var JsDash = function JsDash(selector) {
           boostrap.bind(this)();
           clearInterval(check);
         }
-      }.bind(_this), 1);
+      }.bind(_this), 500);
     } else {
       boostrap.bind(_this)();
     }
@@ -966,6 +1027,10 @@ js.dash.form = function () {
   input.event('keyup', function (e) {
     value.data.value = input.value;
   });
+};
+
+js.dash.body = function () {
+  console.log(this);
 };
 
 js.dash.value = function () {
@@ -1041,43 +1106,7 @@ exports.default = Data;
 module.exports = exports['default'];
 
 /***/ }),
-/* 12 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = getAttributes;
-
-var _utils = __webpack_require__(1);
-
-var _utils2 = _interopRequireDefault(_utils);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function getAttributes($node) {
-  var attributes = {};
-
-  if (!$node.attributes) {
-    return {};
-  }
-
-  for (var i = 0; i < $node.attributes.length; i++) {
-    var attributeName = $node.attributes[i].nodeName;
-
-    if (attributeName !== 'style') {
-      attributes[_utils2.default.dashToCamelCase(attributeName)] = $node.attributes[i].nodeValue;
-    }
-  }
-
-  return attributes;
-}
-module.exports = exports['default'];
-
-/***/ }),
+/* 12 */,
 /* 13 */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -1129,49 +1158,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 module.exports = exports['default'];
 
 /***/ }),
-/* 14 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = getLib;
-function getLib(vnode, jsLib, args) {
-  var lib = {};
-
-  function _hasJs(val) {
-    return val.startsWith('js-');
-  };
-
-  if (vnode.attributes.class !== undefined) {
-    var jsClasses = vnode.attributes.class.split(' ').filter(_hasJs);
-
-    for (var i = 0; i < jsClasses.length; i++) {
-      var jsClass = jsClasses[i];
-      var f = jsClass.substring('js-'.length);
-
-      if (jsLib[f]) {
-        lib[f] = jsLib[f].bind(vnode, args);
-      }
-    }
-
-    for (var func in lib) {
-      try {
-        lib[func]();
-      } catch (error) {
-        console.error(error.stack);
-      }
-    }
-  }
-
-  return lib;
-};
-module.exports = exports['default'];
-
-/***/ }),
+/* 14 */,
 /* 15 */
 /***/ (function(module, exports, __webpack_require__) {
 

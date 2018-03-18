@@ -1,7 +1,5 @@
 import Data from './data';
-import getAttributes from './getAttributes';
 import getChildren from './getChildren';
-import getLib from './getLib';
 import getTagName from './getTagName';
 import getTemplates from './getTemplates';
 import createStyleNode from './styleNode';
@@ -10,19 +8,26 @@ import utils from './utils';
 
 export default class Js {
   constructor (args) {
-    var libArgs = args.args !== undefined ? args.args : null;
-    var styles = {};
-    var styleNode = createStyleNode();
-    var attributes = {};
+    const $node = args.$node;
+    const parent = args.parent;
+    const jsLib = args.lib;
+    const uid = args.uid;
+    const libArgs = args.args !== undefined ? args.args : null;
+    const styleNode = createStyleNode();
+    const lib = {};
+    const styles = {};
+    const attributes = {};
 
     this.data = {};
     this.watch = {};
+    this.tagName = getTagName($node);
+    this.childNodes = getChildren($node, jsLib, this);
 
     // Reference to the vnode parent
-    if (args.parent !== undefined) {
+    if (parent !== undefined) {
       Object.defineProperty(this, 'parent', {
         get () {
-          return args.parent;
+          return parent;
         },
         set () {
           console.log('Can\'t change parent');
@@ -32,11 +37,11 @@ export default class Js {
 
     // Create the UID of the vnode
     if (args.uid !== undefined) {
-      args.$node.setAttribute('id', args.uid);
+      $node.setAttribute('id', uid);
 
       Object.defineProperty(this, 'uid', {
         get () {
-          return args.uid;
+          return uid;
         },
         set () {
           console.log('Can\'t change UID');
@@ -47,78 +52,114 @@ export default class Js {
     // Referencd to the document node
     Object.defineProperty(this, 'node', {
       get () {
-        return args.$node;
+        return $node;
       },
       set () {
         console.log('Can\'t redefine document node');
       }
     });
 
-    // Set styles
-    Object.defineProperty(this, 'styles', {
-      get () {
-        return styles;
-      },
-      set (value) {
-        for (let key in value) {
-          styles[key] = value[key];
-        }
-
-        updateStyles(styleNode, styles, this.uid);
-      },
-      configurable: true
-    });
-
     // Import the lib from the parent
     Object.defineProperty(this, '_jsLib', {
       get () {
-        return args.lib;
+        return jsLib;
       },
       set () {
         console.log('Can\'t set the lib');
       }
     });
 
-    // Setting value if an input
-    if (args.$node.tagName === 'INPUT') {
-      Object.defineProperty(this, 'value', {
-        get () {
-          return this.node.value;
-        },
-        set (value) {
-          this.node.value = value;
-        }
-      });
-    }
+    // Build attributes
+    for (let i = 0; i < $node.attributes.length; i++) {
+      let attributeName = utils.dashToCamelCase($node.attributes[i].nodeName);
+      let attributeValue = $node.attributes[i].nodeValue
 
-    for (let i = 0; i < args.$node.attributes.length; i++) {
-      let attributeName = utils.dashToCamelCase(args.$node.attributes[i].nodeName);
-      console.log(attributeName)
+      function _hasJs (val) {
+        return val.startsWith('js-');
+      };
+
+      function _notHasJs (val) {
+        return !val.startsWith('js-');
+      };
 
       switch (attributeName) {
-        case 'style':
-          break;
         case 'id':
-          attributes[attributeName] = args.$node.attributes[i].nodeValue;
-          Object.defineProperty(this, attributeName, {
-            get: () => {
-              // return attributes[attributeName]
+          break;
+        case 'style':
+          Object.defineProperty(this, 'style', {
+            get () {
+              return styles;
             },
-            set: (val) => {
-              // attributes[attributeName] = val
+            set (value) {
+              for (let key in value) {
+                styles[key] = value[key];
+              }
+
+              updateStyles(styleNode, styles, this.uid);
+            },
+            configurable: true
+          });
+          break;
+        case 'class':
+          attributes['class'] = attributeValue;
+          Object.defineProperty(this, 'class', {
+            get () {
+              return attributes.class
+            },
+            set (value) {
+              if (typeof value === 'string') {
+                attributes.class = value;
+              } else {
+                attributes.class = value.join(' ')
+              }
+              this.node.attributes.class.nodeValue = attributes.class
+            },
+            configurable: true
+          });
+
+          Object.defineProperty(this, 'lib', {
+            get () {
+              return lib
+            },
+            set (value) {
+              console.log('Can\'t directly set this value')
+            },
+            configurable: true
+          });
+
+          attributeValue.split(' ').filter(_hasJs).forEach((functionClass, index, array) => {
+            let functionName = functionClass.substring('js-'.length);
+
+            if (jsLib[functionName]) {
+              lib[functionName] = jsLib[functionName].bind(this, args);
             }
           })
 
           break;
+        default:
+          attributes[attributeName] = $node.attributes[i].nodeValue;
+          Object.defineProperty(this, attributeName, {
+            get: () => {
+              return attributes[attributeName]
+            },
+            set: (val) => {
+              if (attributes[attributeName] !== val) {
+                attributes[attributeName] = val
+                this.node.setAttribute(attribute, this.attributes[utils.dashToCamelCase(attribute)]);
+              }
+            }
+          })
+          break;
       }
     }
 
-    this.attributes = getAttributes(args.$node);
-    this.tagName = getTagName(args.$node);
-    this.childNodes = getChildren(args.$node, args.lib, this);
-    this.templates = getTemplates(args.$node);
-
-    this.lib = getLib(this, args.lib, libArgs);
+    for (let functionName in lib) {
+      try {
+        (lib[functionName])();
+      } catch (error) {
+        console.error(error.stack);
+      }
+    }
   }
 
   addChild ($newNodes, args, cb) {
@@ -170,6 +211,17 @@ export default class Js {
         return {};
     }
   };
+
+  addClass (className) {
+    let classes = this.class.split(' ');
+
+    console.log();
+
+    if (!classes.includes(className)) {
+      classes.push(className);
+      this.class = classes.join(' ');
+    }
+  }
 
   bind (data) {
     var $node = this.node;
@@ -229,7 +281,7 @@ export default class Js {
     switch (args.length) {
       case 1:
         dig(this, (childNode) => {
-          if (childNode.attributes.hasOwnProperty(args[0])) {
+          if (childNode.hasOwnProperty(args[0])) {
             result.push(childNode);
           }
         });
@@ -238,11 +290,11 @@ export default class Js {
       case 2:
         dig(this, (childNode) => {
           if (typeof args[1] === 'function') {
-            if (childNode.attributes.hasOwnProperty(args[0])) {
+            if (childNode.hasOwnProperty(args[0])) {
               args[1](childNode);
               result.push(childNode);
             }
-          } else if (childNode.attributes[args[0]].split(' ').includes(args[1])) {
+          } else if (childNode[args[0]].split(' ').includes(args[1])) {
             result.push(childNode);
           } else {
             // Error not a good query
@@ -252,7 +304,7 @@ export default class Js {
 
       case 3:
         dig(this, (childNode) => {
-          if (childNode.attributes[args[0]] === args[1]) {
+          if (childNode[args[0]] === args[1]) {
             args[2](childNode);
             result.push(childNode);
           }

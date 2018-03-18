@@ -17,6 +17,10 @@ js.dash.form = function () {
   })
 }
 
+js.dash.body = function () {
+  console.log(this)
+}
+
 
 js.dash.value = function () {
   this.model(() => {

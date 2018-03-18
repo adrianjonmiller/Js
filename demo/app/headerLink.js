@@ -5,5 +5,9 @@ export default function (args) {
     }
   })
 
+  this.event('mouseover', function () {
+    this.addClass('is-active')
+  }.bind(this))
+
   this.bind(this.watch.name)
 }
