@@ -1,8 +1,8 @@
 export default class Data {
   constructor (parent, key) {
-    this.parent = parent;
-    this.key = key;
     this.cb = [];
+    this.key = key;
+    this.parent = parent;
   }
 
   val () {

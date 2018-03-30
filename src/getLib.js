@@ -1,5 +1,5 @@
 export default function getLib (vnode, jsLib, args) {
-  var lib = {};
+  let lib = {};
 
   function _hasJs (val) {
     return val.startsWith('js-');
@@ -9,8 +9,7 @@ export default function getLib (vnode, jsLib, args) {
     let jsClasses = vnode.attributes.class.split(' ').filter(_hasJs);
 
     for (let i = 0; i < jsClasses.length; i++) {
-      let jsClass = jsClasses[i];
-      let f = jsClass.substring('js-'.length);
+      let f = jsClasses[i].substring('js-'.length);
 
       if (jsLib[f]) {
         lib[f] = jsLib[f].bind(vnode, args);

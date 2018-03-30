@@ -10,5 +10,14 @@ export default {
   },
   uid: function () {
     return '_js' + this.id++;
+  },
+  current: function () {
+    return this.id;
+  },
+  prev: function () {
+    return '_js' + (this.id - 1);
+  },
+  next: function () {
+    return '_js' + (this.id);
   }
 };

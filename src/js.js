@@ -1,27 +1,43 @@
 import Data from './data';
 import getChildren from './getChildren';
 import getTagName from './getTagName';
-import getTemplates from './getTemplates';
 import createStyleNode from './styleNode';
 import updateStyles from './updateStyles';
 import utils from './utils';
+import obj from './obj';
+
+function _hasJs (val) {
+  return val.startsWith('js-');
+};
 
 export default class Js {
   constructor (args) {
     const $node = args.$node;
-    const parent = args.parent;
     const jsLib = args.lib;
     const uid = args.uid;
-    const libArgs = args.args !== undefined ? args.args : null;
+    const libArgs = args.args !== undefined ? args.args : undefined;
     const styleNode = createStyleNode();
     const lib = {};
     const styles = {};
     const attributes = {};
 
+    var parent = args.parent;
+    var next = {};
+
     this.data = {};
     this.watch = {};
     this.tagName = getTagName($node);
     this.childNodes = getChildren($node, jsLib, this);
+
+    // Pseudo Private
+    this._attributes = attributes;
+    this._lib = lib;
+
+    if (args.model !== undefined) {
+      this.model(() => {
+        return args.model;
+      });
+    }
 
     // Reference to the vnode parent
     if (parent !== undefined) {
@@ -29,15 +45,31 @@ export default class Js {
         get () {
           return parent;
         },
-        set () {
-          console.log('Can\'t change parent');
+        set (value) {
+          parent = value;
         }
       });
     }
 
+    Object.defineProperty(this, 'next', {
+      get: () => {
+        return next;
+      },
+      set: (val) => {
+        next = val;
+      },
+      configurable: true
+    });
+
+    Object.defineProperty(this, 'isVnode', {
+      get () {
+        return true;
+      }
+    });
+
     // Create the UID of the vnode
     if (args.uid !== undefined) {
-      $node.setAttribute('id', uid);
+      // $node.setAttribute('id', uid);
 
       Object.defineProperty(this, 'uid', {
         get () {
@@ -69,60 +101,65 @@ export default class Js {
       }
     });
 
+    Object.defineProperty(this, 'style', {
+      get () {
+        return styles;
+      },
+      set (value) {
+        for (let key in value) {
+          styles[key] = value[key];
+        }
+
+        updateStyles(styleNode, styles, this.uid);
+      },
+      configurable: true
+    });
+
     // Build attributes
     for (let i = 0; i < $node.attributes.length; i++) {
       let attributeName = utils.dashToCamelCase($node.attributes[i].nodeName);
-      let attributeValue = $node.attributes[i].nodeValue
-
-      function _hasJs (val) {
-        return val.startsWith('js-');
-      };
-
-      function _notHasJs (val) {
-        return !val.startsWith('js-');
-      };
+      let attributeValue = $node.attributes[i].nodeValue;
 
       switch (attributeName) {
         case 'id':
           break;
-        case 'style':
-          Object.defineProperty(this, 'style', {
+        case 'value':
+          Object.defineProperty(this, 'value', {
             get () {
-              return styles;
+              return $node.value;
             },
             set (value) {
-              for (let key in value) {
-                styles[key] = value[key];
-              }
-
-              updateStyles(styleNode, styles, this.uid);
+              $node.value = value;
             },
             configurable: true
           });
+          break;
+        case 'style':
+
           break;
         case 'class':
           attributes['class'] = attributeValue;
           Object.defineProperty(this, 'class', {
             get () {
-              return attributes.class
+              return attributes.class;
             },
             set (value) {
               if (typeof value === 'string') {
                 attributes.class = value;
               } else {
-                attributes.class = value.join(' ')
+                attributes.class = value.join(' ');
               }
-              this.node.attributes.class.nodeValue = attributes.class
+              this.node.attributes.class.nodeValue = attributes.class;
             },
             configurable: true
           });
 
           Object.defineProperty(this, 'lib', {
             get () {
-              return lib
+              return lib;
             },
             set (value) {
-              console.log('Can\'t directly set this value')
+              console.log('Can\'t directly set this value');
             },
             configurable: true
           });
@@ -131,51 +168,55 @@ export default class Js {
             let functionName = functionClass.substring('js-'.length);
 
             if (jsLib[functionName]) {
-              lib[functionName] = jsLib[functionName].bind(this, args);
+              lib[functionName] = jsLib[functionName].bind(this, libArgs);
             }
-          })
+          });
 
           break;
         default:
           attributes[attributeName] = $node.attributes[i].nodeValue;
           Object.defineProperty(this, attributeName, {
             get: () => {
-              return attributes[attributeName]
+              return attributes[attributeName];
             },
             set: (val) => {
               if (attributes[attributeName] !== val) {
-                attributes[attributeName] = val
-                this.node.setAttribute(attribute, this.attributes[utils.dashToCamelCase(attribute)]);
+                attributes[attributeName] = val;
+                this.node.setAttribute(utils.camelCaseToDash(attributeName), this.attributes[attributeName]);
               }
             }
-          })
+          });
           break;
       }
     }
 
-    for (let functionName in lib) {
-      try {
-        (lib[functionName])();
-      } catch (error) {
-        console.error(error.stack);
-      }
+    if (args.init !== false) {
+      this.init(libArgs);
     }
   }
 
   addChild ($newNodes, args, cb) {
     var uid;
 
+    if ($newNodes.isVnode) {
+      $newNodes.parent = this;
+      this.node.appendChild($newNodes.node);
+      return $newNodes;
+    }
+
     switch ($newNodes.nodeType) {
       case 1:
         uid = utils.uid();
 
-        this.childNodes[uid] = new Js({
+        obj[uid] = new Js({
           $node: $newNodes,
           parent: this,
           lib: this._jsLib,
           uid: uid,
           args: args
         });
+
+        this.childNodes[uid] = obj[uid];
 
         requestAnimationFrame(() => {
           this.node.appendChild($newNodes);
@@ -190,13 +231,15 @@ export default class Js {
       case 11:
         uid = utils.uid();
 
-        this.childNodes[uid] = new Js({
+        obj[uid] = new Js({
           $node: $newNodes,
           parent: this,
           lib: this._jsLib,
           uid: uid,
           args: args
         });
+
+        this.childNodes[uid] = obj[uid];
 
         requestAnimationFrame(() => {
           this.node.appendChild($newNodes);
@@ -214,8 +257,6 @@ export default class Js {
 
   addClass (className) {
     let classes = this.class.split(' ');
-
-    console.log();
 
     if (!classes.includes(className)) {
       classes.push(className);
@@ -239,6 +280,34 @@ export default class Js {
         newNode.nodeValue = val;
       });
     }
+  }
+
+  clone (...args) {
+    let $cloned = (function deepClone (vnode) {
+      let $newNode = vnode.node.cloneNode();
+      let key = '';
+
+      for (key in vnode.childNodes) {
+        $newNode.appendChild(deepClone(vnode.childNodes[key]));
+      }
+      return $newNode;
+    })(this);
+
+    return new Js({
+      $node: $cloned,
+      lib: this._jsLib,
+      uid: utils.uid(),
+      args: args
+    });
+  }
+
+  createVnode ($node, args) {
+    return new Js({
+      $node: $node,
+      lib: this._jsLib,
+      uid: utils.uid(),
+      args: args
+    });
   }
 
   emit (eventName) {
@@ -281,7 +350,7 @@ export default class Js {
     switch (args.length) {
       case 1:
         dig(this, (childNode) => {
-          if (childNode.hasOwnProperty(args[0])) {
+          if (childNode.hasOwnProperty(args[0]) || childNode.tagName === args[0]) {
             result.push(childNode);
           }
         });
@@ -290,11 +359,11 @@ export default class Js {
       case 2:
         dig(this, (childNode) => {
           if (typeof args[1] === 'function') {
-            if (childNode.hasOwnProperty(args[0])) {
+            if (childNode.hasOwnProperty(args[0]) || childNode.tagName === args[0]) {
               args[1](childNode);
               result.push(childNode);
             }
-          } else if (childNode[args[0]].split(' ').includes(args[1])) {
+          } else if (childNode[args[0]] !== undefined && childNode[args[0]].split(' ').includes(args[1])) {
             result.push(childNode);
           } else {
             // Error not a good query
@@ -313,6 +382,16 @@ export default class Js {
     }
 
     return result;
+  }
+
+  init (args) {
+    for (let functionName in this._lib) {
+      try {
+        (this._lib[functionName])(args);
+      } catch (error) {
+        console.error(error.stack);
+      }
+    }
   }
 
   model (cb) {
@@ -348,12 +427,20 @@ export default class Js {
   }
 
   setAttribute (attribute, value) {
-    let attributeCamel = utils.dashToCamelCase(attribute);
+    let attributeName = utils.dashToCamelCase(attribute);
 
-    this.attributes[attributeCamel] = value;
+    this._attributes[attributeName] = value;
 
-    if (this.node.attributes[attribute] !== this.attributes[attributeCamel]) {
-      this.node.setAttribute(attribute, this.attributes[utils.dashToCamelCase(attribute)]);
-    }
+    Object.defineProperty(this, attributeName, {
+      get: () => {
+        return this._attributes[attributeName];
+      },
+      set: (val) => {
+        if (this._attributes[attributeName] !== val) {
+          this._attributes[attributeName] = val;
+          this.node.setAttribute(utils.camelCaseToDash(attributeName), this._attributes[attributeName]);
+        }
+      }
+    });
   }
 }

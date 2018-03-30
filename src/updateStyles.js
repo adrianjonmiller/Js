@@ -1,4 +1,4 @@
-import utils from 'utils';
+import utils from './utils';
 
 export default function (styleNode, styles, uid, cb) {
   var head = document.head || document.querySelector('head');

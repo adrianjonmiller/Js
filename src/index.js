@@ -1,5 +1,6 @@
 import Js from './js';
 import utils from './utils';
+import obj from './obj';
 
 export default class JsDash {
   constructor (selector) {
@@ -18,7 +19,7 @@ export default class JsDash {
         let t0 = performance.now();
         let uid = $node.getAttribute('id') ? $node.getAttribute('id') : utils.uid();
 
-        this.vnode = new Js({$node: $node, lib: this.dash, uid: uid});
+        obj[uid] = new Js({$node: $node, lib: this.dash, uid: uid});
 
         let t1 = performance.now();
 
@@ -37,4 +38,9 @@ export default class JsDash {
       }
     });
   }
+}
+
+export function createVnode (args) {
+  // console.log(args)
+  return new Js(args);
 }
