@@ -73,7 +73,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 4);
+/******/ 	return __webpack_require__(__webpack_require__.s = 6);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -139,23 +139,23 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _data = __webpack_require__(5);
+var _data = __webpack_require__(3);
 
 var _data2 = _interopRequireDefault(_data);
 
-var _getChildren = __webpack_require__(6);
+var _getChildren = __webpack_require__(4);
 
 var _getChildren2 = _interopRequireDefault(_getChildren);
 
-var _getTagName = __webpack_require__(7);
+var _getTagName = __webpack_require__(5);
 
 var _getTagName2 = _interopRequireDefault(_getTagName);
 
-var _styleNode = __webpack_require__(8);
+var _styleNode = __webpack_require__(7);
 
 var _styleNode2 = _interopRequireDefault(_styleNode);
 
-var _updateStyles = __webpack_require__(9);
+var _updateStyles = __webpack_require__(8);
 
 var _updateStyles2 = _interopRequireDefault(_updateStyles);
 
@@ -666,101 +666,6 @@ module.exports = exports['default'];
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.createVnode = createVnode;
-
-var _js = __webpack_require__(2);
-
-var _js2 = _interopRequireDefault(_js);
-
-var _utils = __webpack_require__(0);
-
-var _utils2 = _interopRequireDefault(_utils);
-
-var _obj = __webpack_require__(1);
-
-var _obj2 = _interopRequireDefault(_obj);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-var JsDash = function JsDash(selector) {
-  var _this = this;
-
-  _classCallCheck(this, JsDash);
-
-  var $node = document.querySelector(selector) || document.body;
-
-  this.dash = {};
-
-  (function (cb) {
-    if (document.readyState !== 'loading') {
-      cb(_this);
-    } else {
-      document.addEventListener('DOMContentLoaded', cb(_this));
-    }
-  })(function () {
-    function boostrap() {
-      var t0 = performance.now();
-      var uid = $node.getAttribute('id') ? $node.getAttribute('id') : _utils2.default.uid();
-
-      _obj2.default[uid] = new _js2.default({ $node: $node, lib: this.dash, uid: uid });
-
-      var t1 = performance.now();
-
-      console.log('Initializing the JS took ' + (t1 - t0) + ' milliseconds.');
-    }
-
-    if (Object.keys(_this.dash).length === 0) {
-      var check = setInterval(function () {
-        if (Object.keys(this.dash).length !== 0) {
-          boostrap.bind(this)();
-          clearInterval(check);
-        }
-      }.bind(_this), 1);
-    } else {
-      boostrap.bind(_this)();
-    }
-  });
-};
-
-exports.default = JsDash;
-function createVnode(args) {
-  // console.log(args)
-  return new _js2.default(args);
-}
-
-/***/ }),
-/* 4 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var _src = __webpack_require__(3);
-
-var _src2 = _interopRequireDefault(_src);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-var js = new _src2.default();
-
-js.dash.body = function () {
-  var el = this.find('class', 'js-form')[0];
-
-  console.log(el);
-};
-
-/***/ }),
-/* 5 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
@@ -814,7 +719,7 @@ exports.default = Data;
 module.exports = exports['default'];
 
 /***/ }),
-/* 6 */
+/* 4 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -888,7 +793,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 module.exports = exports['default'];
 
 /***/ }),
-/* 7 */
+/* 5 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -904,7 +809,81 @@ function getTagName($node) {
 module.exports = exports["default"];
 
 /***/ }),
-/* 8 */
+/* 6 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.createVnode = createVnode;
+
+var _js = __webpack_require__(2);
+
+var _js2 = _interopRequireDefault(_js);
+
+var _utils = __webpack_require__(0);
+
+var _utils2 = _interopRequireDefault(_utils);
+
+var _obj = __webpack_require__(1);
+
+var _obj2 = _interopRequireDefault(_obj);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var JsDash = function JsDash(selector) {
+  var _this = this;
+
+  _classCallCheck(this, JsDash);
+
+  var $node = document.querySelector(selector) || document.body;
+
+  this.dash = {};
+
+  (function (cb) {
+    if (document.readyState !== 'loading') {
+      cb(_this);
+    } else {
+      document.addEventListener('DOMContentLoaded', cb(_this));
+    }
+  })(function () {
+    function boostrap() {
+      var t0 = performance.now();
+      var uid = $node.getAttribute('id') ? $node.getAttribute('id') : _utils2.default.uid();
+
+      _obj2.default[uid] = new _js2.default({ $node: $node, lib: this.dash, uid: uid });
+
+      var t1 = performance.now();
+
+      console.log('Initializing the JS took ' + (t1 - t0) + ' milliseconds.');
+    }
+
+    if (Object.keys(_this.dash).length === 0) {
+      var check = setInterval(function () {
+        if (Object.keys(this.dash).length !== 0) {
+          boostrap.bind(this)();
+          clearInterval(check);
+        }
+      }.bind(_this), 1);
+    } else {
+      boostrap.bind(_this)();
+    }
+  });
+};
+
+exports.default = JsDash;
+function createVnode(args) {
+  // console.log(args)
+  return new _js2.default(args);
+}
+
+/***/ }),
+/* 7 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -925,7 +904,7 @@ exports.default = function () {
 module.exports = exports['default'];
 
 /***/ }),
-/* 9 */
+/* 8 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
