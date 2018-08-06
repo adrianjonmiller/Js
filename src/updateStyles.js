@@ -1,33 +1,34 @@
 import utils from './utils';
+const head = document.head || document.querySelector('head');
 
 export default function (styleNode, styles, uid, cb) {
-  var head = document.head || document.querySelector('head');
   var css = '#' + uid + '{';
 
-  Object.keys(styles).forEach((prop, index, array) => {
-    if (styles[prop] !== '') {
-      css += utils.camelCaseToDash(prop) + ':' + styles[prop] + ';';
-    } else {
-      delete styles[prop];
-    }
+  return new Promise((resolve, reject) => {
+    Object.keys(styles).forEach((prop, index, array) => {
 
-    if (index === array.length - 1) {
-      css += '}';
-
-      if (styleNode.styleSheet) {
-        styleNode.styleSheet.cssText = css;
+      if (styles[prop] !== '') {
+        css += utils.camelCaseToDash(prop) + ':' + styles[prop] + ';';
       } else {
-        styleNode.innerHTML = '';
-        styleNode.appendChild(document.createTextNode(css));
+        delete styles[prop];
       }
+  
+      if (index === array.length - 1) {
+        css += '}';
+  
+        if (styleNode.styleSheet) {
+          styleNode.styleSheet.cssText = css;
+        } else {
+          styleNode.innerHTML = '';
+          styleNode.appendChild(document.createTextNode(css));
+        }
+  
+        if (!styleNode.parentNode) {
+          head.appendChild(styleNode);
+        }
 
-      if (!styleNode.parentNode) {
-        head.appendChild(styleNode);
+        resolve();
       }
-
-      if (typeof cb === 'function') {
-        cb();
-      }
-    }
+    });
   });
 }

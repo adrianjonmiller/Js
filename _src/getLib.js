@@ -1,3 +1,5 @@
+// Rename this to initialize
+
 export default function getLib (vnode, jsLib, args) {
   let lib = {};
 

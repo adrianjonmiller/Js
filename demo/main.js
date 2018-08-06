@@ -73,7 +73,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 6);
+/******/ 	return __webpack_require__(__webpack_require__.s = 4);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -86,6 +86,343 @@ return /******/ (function(modules) { // webpackBootstrap
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _utils = __webpack_require__(1);
+
+var _utils2 = _interopRequireDefault(_utils);
+
+var _vnode = __webpack_require__(2);
+
+var _vnode2 = _interopRequireDefault(_vnode);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var head = document.head || document.querySelector('head');
+
+var Model = function () {
+  function Model($node) {
+    var _this = this;
+
+    _classCallCheck(this, Model);
+
+    var id = $node.getAttribute('id') || _utils2.default.uid();
+
+    this.id = id;
+    this.$node = $node;
+    this.style = {};
+    this.class = $node.getAttribute('class') || '';
+    this.$styleNode = document.createElement('style');
+    this.$styleNode.type = 'text/css';
+    this.events = {
+      styleUpdated: [function () {
+        var style = '#' + _this.id + '{';
+
+        for (var prop in _this.style) {
+          style += _utils2.default.camelCaseToDash(prop) + ':' + _this.style[prop] + ';';
+        }
+
+        style += '}';
+
+        if (_this.$styleNode.parentNode === null) {
+          head.appendChild(_this.$styleNode);
+        }
+
+        _this.$styleNode.innerHTML = style;
+      }]
+    };
+    this.parent = null;
+    this.prev = null;
+    this.next = null;
+    this.child = null;
+    this.value = '';
+    this.behaviors = $node.getAttribute('data-behavior') ? $node.getAttribute('data-behavior').split(' ') : [];
+    this.width = $node.offsetWidth;
+    this.height = $node.offsetHeight;
+    this.top = $node.offsetTop;
+    this.left = $node.offsetLeft;
+    this.right = $node.offsetLeft + $node.offsetWidth;
+    this.bottom = $node.offsetTop + $node.offsetHeight;
+
+    $node.id = id;
+
+    var model = {
+      id: id,
+      tagName: $node.tagName.toLowerCase(),
+      $node: $node,
+      behaviors: this.behaviors,
+      class: this.classHandler.bind(this),
+      style: this.styleHandler.bind(this),
+      next: this.nextHandler.bind(this),
+      prev: this.prevHandler.bind(this),
+      parent: this.parentHandler.bind(this),
+      child: this.childHandler.bind(this),
+      width: this.widthHandler.bind(this),
+      height: this.heightHandler.bind(this),
+      bottom: this.bottomHandler.bind(this),
+      top: this.topHandler.bind(this),
+      left: this.leftHandler.bind(this),
+      right: this.rightHandler.bind(this),
+      events: this.queueHandler.bind(this),
+      emitEvent: this.eventHandler.bind(this)
+    };
+
+    var lastChild = null;
+
+    for (var i = 0; i < $node.childNodes.length; i++) {
+      var $child = $node.childNodes[i];
+
+      if ($child.nodeType === 1) {
+        var child = new Model($child);
+
+        if (lastChild === null) {
+          this.child = child;
+        } else {
+          lastChild.next(child);
+        }
+        lastChild = child;
+      }
+    }
+
+    var _loop = function _loop(_i) {
+      var attrName = _utils2.default.dashToCamelCase($node.attributes[_i].nodeName);
+      var $attrValue = $node.attributes[_i].nodeValue;
+
+      if (attrName !== 'id' && attrName !== 'dataBehavior' && attrName !== 'style' && attrName !== 'value') {
+        _this[attrName] = $attrValue;
+
+        model[attrName] = function (val) {
+          if (val && val !== attributes[attrName]) {
+            _this.attrName = val;
+            _this.$node.setAttribute(_utils2.default.camelCaseToDash(_this.attrName), val);
+          } else {
+            return _this[attrName];
+          }
+        };
+      }
+    };
+
+    for (var _i = 0; _i < $node.attributes.length; _i++) {
+      _loop(_i);
+    }
+
+    if (model.tagName === 'input') {
+      model.value = this.valueHandler.bind(this);
+    }
+
+    return model;
+  }
+
+  // DOM Handlers ********************************************************
+
+  _createClass(Model, [{
+    key: 'childHandler',
+    value: function childHandler(child) {
+      if (!child) {
+        return this.child;
+      } else {
+        this.child = child;
+      }
+    }
+  }, {
+    key: 'nextHandler',
+    value: function nextHandler(next) {
+      if (!next) {
+        return this.next;
+      } else {
+        this.next = next;
+      }
+    }
+  }, {
+    key: 'prevHandler',
+    value: function prevHandler(prev) {
+      if (!prev) {
+        return this.prev;
+      } else {
+        this.prev = prev;
+      }
+    }
+  }, {
+    key: 'parentHandler',
+    value: function parentHandler(parent) {
+      if (!parent) {
+        return this.parent;
+      } else {
+        this.parent = parent;
+      }
+    }
+
+    // Position Handlers ********************************************************
+
+  }, {
+    key: 'bottomHandler',
+    value: function bottomHandler(bottom) {
+      if (bottom) {
+        this.bottom = bottom;
+        this.style.bottom = this.bottom + 'px';
+        this.setStyles();
+      } else {
+        if (this.$node.offsetTop + this.$node.offsetHeight !== this.bottom) {
+          this.bottom = this.$node.offsetTop + this.$node.offsetHeight;
+        }
+      }
+      return this.bottom;
+    }
+  }, {
+    key: 'topHandler',
+    value: function topHandler(top) {
+      if (top) {
+        this.top = top;
+        this.style.top = this.top + 'px';
+        this.setStyles();
+      } else {
+        if (this.$node.offsetTop !== this.top) {
+          this.right = this.$node.offsetTop;
+        }
+      }
+      return this.top;
+    }
+  }, {
+    key: 'leftHandler',
+    value: function leftHandler(left) {
+      if (left) {
+        this.left = left;
+        this.style.left = this.left + 'px';
+        this.setStyles();
+      } else {
+        if (this.$node.offsetLeft !== this.right) {
+          this.right = this.$node.offsetLeft;
+        }
+      }
+      return this.right;
+    }
+  }, {
+    key: 'rightHandler',
+    value: function rightHandler(right) {
+      if (right) {
+        this.right = right;
+        this.style.right = this.right + 'px';
+        this.setStyles();
+      } else {
+        if (this.$node.offsetLeft + this.$node.offsetWidth !== this.right) {
+          this.right = this.$node.offsetLeft + this.$node.offsetWidth;
+        }
+      }
+      return this.right;
+    }
+  }, {
+    key: 'widthHandler',
+    value: function widthHandler(width) {
+      if (!width) {
+        return this.width;
+      } else {
+        if (this.width !== width) {
+          this.width = width;
+          this.style.width = this.width + 'px';
+          this.setStyles();
+        }
+      }
+    }
+  }, {
+    key: 'heightHandler',
+    value: function heightHandler(height) {
+      if (!height) {
+        return this.height;
+      } else {
+        height = parseInt(height, 10);
+        if (this.height !== height) {
+          this.style.height = this.height + 'px';
+          this.setStyles();
+        }
+      }
+    }
+
+    // Events ********************************************************
+
+  }, {
+    key: 'eventHandler',
+    value: function eventHandler(event) {
+      if (this.events[event] !== undefined) {
+        this.events[event].map(function (fn) {
+          requestAnimationFrame(fn);
+        });
+      }
+    }
+  }, {
+    key: 'queueHandler',
+    value: function queueHandler(event) {
+      if (!this.events[event.name]) {
+        this.events[event.name] = new Array();
+      }
+      this.events[event.name].push(event.fn);
+    }
+
+    // Class ********************************************************
+
+  }, {
+    key: 'classHandler',
+    value: function classHandler(newClass) {
+      if (!newClass) {
+        return this.class;
+      } else if (this.class !== newClass) {
+        this.$node.setAttribute('class', newClass);
+        this.class = newClass;
+      }
+    }
+
+    // Styles ********************************************************
+
+  }, {
+    key: 'styleHandler',
+    value: function styleHandler(style) {
+      if (!style) {
+        this.eventHandler('styleUpdated');
+        return this.style;
+      } else if ((typeof style === 'undefined' ? 'undefined' : _typeof(style)) === 'object') {
+        for (var prop in style) {
+          this.style[prop] = style[prop];
+        }
+        this.eventHandler('styleUpdated');
+      }
+    }
+
+    // Value Handler ********************************************************
+
+  }, {
+    key: 'valueHandler',
+    value: function valueHandler(value) {
+      if (!value) {
+        return this.value;
+      } else if (this.value !== value) {
+        this.value = value;
+        this.$node.value = this.value;
+      }
+    }
+  }]);
+
+  return Model;
+}();
+
+exports.default = Model;
+module.exports = exports['default'];
+
+/***/ }),
+/* 1 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+// Store IDs in an array so they can be retrieved more accurate with the before and after functions
+
 exports.default = {
   id: 0,
   camelCaseToDash: function camelCaseToDash(myStr) {
@@ -95,6 +432,12 @@ exports.default = {
     return myString.replace(/-([a-z])/g, function (g) {
       return g[1].toUpperCase();
     });
+  },
+  createStyleNode: function createStyleNode() {
+    var styleNode = document.createElement('style');
+    styleNode.type = 'text/css';
+
+    return styleNode;
   },
   uid: function uid() {
     return '_js' + this.id++;
@@ -112,19 +455,6 @@ exports.default = {
 module.exports = exports['default'];
 
 /***/ }),
-/* 1 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = {};
-module.exports = exports["default"];
-
-/***/ }),
 /* 2 */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -139,453 +469,139 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _data = __webpack_require__(3);
+var _data = __webpack_require__(5);
 
 var _data2 = _interopRequireDefault(_data);
 
-var _getChildren = __webpack_require__(4);
-
-var _getChildren2 = _interopRequireDefault(_getChildren);
-
-var _getTagName = __webpack_require__(5);
-
-var _getTagName2 = _interopRequireDefault(_getTagName);
-
-var _styleNode = __webpack_require__(7);
-
-var _styleNode2 = _interopRequireDefault(_styleNode);
-
-var _updateStyles = __webpack_require__(8);
-
-var _updateStyles2 = _interopRequireDefault(_updateStyles);
-
-var _utils = __webpack_require__(0);
+var _utils = __webpack_require__(1);
 
 var _utils2 = _interopRequireDefault(_utils);
 
-var _obj = __webpack_require__(1);
+var _model2 = __webpack_require__(0);
 
-var _obj2 = _interopRequireDefault(_obj);
+var _model3 = _interopRequireDefault(_model2);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-function _hasJs(val) {
-  return val.startsWith('js-');
-};
-
-var Js = function () {
-  function Js(args) {
+var Vnode = function () {
+  function Vnode(model, behaviors) {
     var _this = this;
 
-    _classCallCheck(this, Js);
+    _classCallCheck(this, Vnode);
 
-    var $node = args.$node;
-    var jsLib = args.lib;
-    var uid = args.uid;
-    var libArgs = args.args !== undefined ? args.args : undefined;
-    var styleNode = (0, _styleNode2.default)();
-    var lib = {};
-    var styles = {};
-    var attributes = {};
-
-    var parent = args.parent;
-    var next = {};
-
-    this.data = {};
+    this.methods = {};
     this.watch = {};
-    this.tagName = (0, _getTagName2.default)($node);
-    this.childNodes = (0, _getChildren2.default)($node, jsLib, this);
 
-    // Pseudo Private
-    this._attributes = attributes;
-    this._lib = lib;
+    this.model(model);
 
-    if (args.model !== undefined) {
-      this.model(function () {
-        return args.model;
-      });
+    if (model.child()) {
+      model.child().parent(this);
+      this.child = new Vnode(model.child(), behaviors);
     }
 
-    // Reference to the vnode parent
-    if (parent !== undefined) {
-      Object.defineProperty(this, 'parent', {
-        get: function get() {
-          return parent;
-        },
-        set: function set(value) {
-          parent = value;
-        }
-      });
+    if (model.next()) {
+      model.next().prev(this);
+      model.next().parent(this.parent);
+      this.next = new Vnode(model.next(), behaviors);
     }
 
-    Object.defineProperty(this, 'next', {
-      get: function get() {
-        return next;
-      },
-      set: function set(val) {
-        next = val;
-      },
-      configurable: true
-    });
-
-    Object.defineProperty(this, 'isVnode', {
-      get: function get() {
-        return true;
-      }
-    });
-
-    // Create the UID of the vnode
-    if (args.uid !== undefined) {
-      // $node.setAttribute('id', uid);
-
-      Object.defineProperty(this, 'uid', {
-        get: function get() {
-          return uid;
-        },
-        set: function set() {
-          console.log('Can\'t change UID');
-        }
+    if (this.behaviors.length > 0) {
+      this.behaviors.filter(function (val) {
+        return Object.keys(behaviors).indexOf(val) > -1;
+      }).map(function (behavior, index, array) {
+        _this.methods[behavior] = behaviors[behavior].bind(_this);
       });
-    };
-
-    // Referencd to the document node
-    Object.defineProperty(this, 'node', {
-      get: function get() {
-        return $node;
-      },
-      set: function set() {
-        console.log('Can\'t redefine document node');
-      }
-    });
-
-    // Import the lib from the parent
-    Object.defineProperty(this, '_jsLib', {
-      get: function get() {
-        return jsLib;
-      },
-      set: function set() {
-        console.log('Can\'t set the lib');
-      }
-    });
-
-    Object.defineProperty(this, 'style', {
-      get: function get() {
-        return styles;
-      },
-      set: function set(value) {
-        for (var key in value) {
-          styles[key] = value[key];
-        }
-
-        (0, _updateStyles2.default)(styleNode, styles, this.uid);
-      },
-
-      configurable: true
-    });
-
-    // Build attributes
-
-    var _loop = function _loop(i) {
-      var attributeName = _utils2.default.dashToCamelCase($node.attributes[i].nodeName);
-      var attributeValue = $node.attributes[i].nodeValue;
-
-      switch (attributeName) {
-        case 'id':
-          break;
-        case 'value':
-          Object.defineProperty(_this, 'value', {
-            get: function get() {
-              return $node.value;
-            },
-            set: function set(value) {
-              $node.value = value;
-            },
-
-            configurable: true
-          });
-          break;
-        case 'style':
-
-          break;
-        case 'class':
-          attributes['class'] = attributeValue;
-          Object.defineProperty(_this, 'class', {
-            get: function get() {
-              return attributes.class;
-            },
-            set: function set(value) {
-              if (typeof value === 'string') {
-                attributes.class = value;
-              } else {
-                attributes.class = value.join(' ');
-              }
-              this.node.attributes.class.nodeValue = attributes.class;
-            },
-
-            configurable: true
-          });
-
-          Object.defineProperty(_this, 'lib', {
-            get: function get() {
-              return lib;
-            },
-            set: function set(value) {
-              console.log('Can\'t directly set this value');
-            },
-
-            configurable: true
-          });
-
-          attributeValue.split(' ').filter(_hasJs).forEach(function (functionClass, index, array) {
-            var functionName = functionClass.substring('js-'.length);
-
-            if (jsLib[functionName]) {
-              lib[functionName] = jsLib[functionName].bind(_this, libArgs);
-            }
-          });
-
-          break;
-        default:
-          attributes[attributeName] = $node.attributes[i].nodeValue;
-          Object.defineProperty(_this, attributeName, {
-            get: function get() {
-              return attributes[attributeName];
-            },
-            set: function set(val) {
-              if (attributes[attributeName] !== val) {
-                attributes[attributeName] = val;
-                _this.node.setAttribute(_utils2.default.camelCaseToDash(attributeName), _this.attributes[attributeName]);
-              }
-            }
-          });
-          break;
-      }
-    };
-
-    for (var i = 0; i < $node.attributes.length; i++) {
-      _loop(i);
-    }
-
-    if (args.init !== false) {
-      this.init(libArgs);
     }
   }
 
-  _createClass(Js, [{
+  _createClass(Vnode, [{
+    key: 'on',
+    value: function on(event, cb) {
+      this.events = {
+        name: event,
+        fn: cb
+      };
+    }
+  }, {
+    key: 'emit',
+    value: function emit(event) {
+      this.emitEvent = event;
+    }
+  }, {
     key: 'addChild',
-    value: function addChild($newNodes, args, cb) {
-      var _this2 = this;
+    value: function addChild($newNode, behaviors) {
+      var child = new _model3.default($newNode);
+      this.children[child.id] = new Vnode(child, behaviors);
 
-      var uid;
-
-      if ($newNodes.isVnode) {
-        $newNodes.parent = this;
-        this.node.appendChild($newNodes.node);
-        return $newNodes;
-      }
-
-      switch ($newNodes.nodeType) {
-        case 1:
-          uid = _utils2.default.uid();
-
-          _obj2.default[uid] = new Js({
-            $node: $newNodes,
-            parent: this,
-            lib: this._jsLib,
-            uid: uid,
-            args: args
-          });
-
-          this.childNodes[uid] = _obj2.default[uid];
-
-          requestAnimationFrame(function () {
-            _this2.node.appendChild($newNodes);
-          });
-
-          if (typeof cb === 'function') {
-            cb(this.childNodes[uid]);
-          }
-
-          return this.childNodes[uid];
-
-        case 11:
-          uid = _utils2.default.uid();
-
-          _obj2.default[uid] = new Js({
-            $node: $newNodes,
-            parent: this,
-            lib: this._jsLib,
-            uid: uid,
-            args: args
-          });
-
-          this.childNodes[uid] = _obj2.default[uid];
-
-          requestAnimationFrame(function () {
-            _this2.node.appendChild($newNodes);
-          });
-
-          if (typeof cb === 'function') {
-            cb(this.childNodes[uid]);
-          }
-
-          return this.childNodes[uid];
-        default:
-          return {};
-      }
+      this.$node.appendChild(child.$node);
     }
   }, {
     key: 'addClass',
-    value: function addClass(className) {
-      var classes = this.class.split(' ');
+    value: function addClass(addedClass) {
+      var classList = this.class.split(' ');
+      var index = classList.indexOf(addedClass);
 
-      if (!classes.includes(className)) {
-        classes.push(className);
-        this.class = classes.join(' ');
+      if (index === -1) {
+        classList.push(addedClass);
+        this.class = classList.join(' ').trim();
       }
+      return this.class;
     }
   }, {
-    key: 'bind',
-    value: function bind(data) {
-      var $node = this.node;
-
-      if (!$node.childNodes.length > 1) {
-        while ($node.firstChild) {
-          $node.removeChild($node.firstChild);
+    key: 'event',
+    value: function event(_event, cb) {
+      this.$node.addEventListener(_event, cb);
+    }
+  }, {
+    key: 'find',
+    value: function find(attrName, value, cb) {
+      var result = [];
+      (function dig(children) {
+        for (var uid in children) {
+          var child = children[uid];
+          dig(child.children);
+          if (child[attrName] !== undefined && child[attrName].indexOf(value) > -1) {
+            result.push(child);
+            if (typeof cb === 'function') {
+              cb(child);
+            }
+          }
         }
-      }
+      })(this.children);
+      return result;
+    }
+  }, {
+    key: 'removeClass',
+    value: function removeClass(addedClass) {
+      this.class = this.class.replace(new RegExp('(^|\\b)' + addedClass.split(' ').join('|') + '(\\b|$)', 'gi'), ' ');
+      return this.class;
+    }
+  }, {
+    key: 'offset',
+    value: function offset(args) {
+      var _this2 = this;
 
-      var newNode = $node.appendChild(document.createTextNode(''));
+      if (this.prev) {
+        this.top = parseInt(args.y, 10) + this.prev.bottom;
 
-      if (data !== undefined && typeof data === 'function') {
-        data(function (val, oldval) {
-          newNode.nodeValue = val;
+        this.prev.event('widthUpdated', function (e) {
+          console.log(e);
+          if (_this2.prev.id === e.detail.id) {
+            e.preventDefault();
+            console.log(e);
+            _this2.top = parseInt(args.y, 10) + _this2.prev.bottom;
+          }
         });
       }
     }
   }, {
-    key: 'clone',
-    value: function clone() {
-      for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
-        args[_key] = arguments[_key];
-      }
-
-      var $cloned = function deepClone(vnode) {
-        var $newNode = vnode.node.cloneNode();
-        var key = '';
-
-        for (key in vnode.childNodes) {
-          $newNode.appendChild(deepClone(vnode.childNodes[key]));
-        }
-        return $newNode;
-      }(this);
-
-      return new Js({
-        $node: $cloned,
-        lib: this._jsLib,
-        uid: _utils2.default.uid(),
-        args: args
-      });
-    }
-  }, {
-    key: 'createVnode',
-    value: function createVnode($node, args) {
-      return new Js({
-        $node: $node,
-        lib: this._jsLib,
-        uid: _utils2.default.uid(),
-        args: args
-      });
-    }
-  }, {
-    key: 'emit',
-    value: function emit(eventName) {
-      var event = new CustomEvent(eventName, {
-        bubbles: true,
-        cancelable: false
-      });
-
-      event.vnode = function () {
-        return this;
-      }.bind(this);
-
-      this.node.dispatchEvent(event);
-    }
-  }, {
-    key: 'event',
-    value: function event(events, cb) {
-      if (Array.isArray(events)) {
-        events.map(function (event) {
-          this.node.addEventListener(event, function (e) {
-            cb(e);
-          }, false);
-        }.bind(this));
-      } else {
-        this.node.addEventListener(events, function (e) {
-          cb(e);
-        }, false);
-      }
-    }
-  }, {
-    key: 'find',
-    value: function find() {
-      for (var _len2 = arguments.length, args = Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
-        args[_key2] = arguments[_key2];
-      }
-
-      var result = [];
-
-      function dig(vnode, cb) {
-        for (var key in vnode.childNodes) {
-          cb(vnode.childNodes[key]);
-          dig(vnode.childNodes[key], cb);
-        }
-      }
-
-      switch (args.length) {
-        case 1:
-          dig(this, function (childNode) {
-            if (childNode.hasOwnProperty(args[0]) || childNode.tagName === args[0]) {
-              result.push(childNode);
-            }
-          });
-          break;
-
-        case 2:
-          dig(this, function (childNode) {
-            if (typeof args[1] === 'function') {
-              if (childNode.hasOwnProperty(args[0]) || childNode.tagName === args[0]) {
-                args[1](childNode);
-                result.push(childNode);
-              }
-            } else if (childNode[args[0]] !== undefined && childNode[args[0]].split(' ').includes(args[1])) {
-              result.push(childNode);
-            } else {
-              // Error not a good query
-            }
-          });
-          break;
-
-        case 3:
-          dig(this, function (childNode) {
-            if (childNode[args[0]] === args[1]) {
-              args[2](childNode);
-              result.push(childNode);
-            }
-          });
-          break;
-      }
-
-      return result;
-    }
-  }, {
     key: 'init',
-    value: function init(args) {
-      for (var functionName in this._lib) {
+    value: function init() {
+      for (var functionName in this.methods) {
         try {
-          this._lib[functionName](args);
+          this.methods[functionName]();
         } catch (error) {
           console.error(error.stack);
         }
@@ -593,67 +609,56 @@ var Js = function () {
     }
   }, {
     key: 'model',
-    value: function model(cb) {
-      (function temp(data, parent, watch) {
-        for (var key in data) {
-          if (_typeof(data[key]) !== 'object') {
-            (function () {
-              var dataObj = new _data2.default(data, key);
+    value: function model(_model, self) {
+      var root = this;
+      self = self || this;
 
-              watch[key] = dataObj.watch.bind(dataObj);
+      function bind(d, k, s, config) {
+        var data = new _data2.default(d);
 
-              Object.defineProperty(parent, key, {
-                get: function get() {
-                  return dataObj.val();
-                },
-                set: function set(value) {
-                  dataObj.set(value);
-                },
-                configurable: true
-              });
-            })();
-          } else {
-            parent[key] = parent[key] || {};
-            watch[key] = watch[key] || {};
-            temp(data[key], parent[key], watch[key]);
-          }
+        if (typeof root.watch[k] === 'function') {
+          data.addWatcher(root.watch[k], self);
         }
-        return parent;
-      })(cb(), this.data, this.watch);
-    }
-  }, {
-    key: 'remove',
-    value: function remove() {
-      this.node.parentNode.removeChild(this.node);
-      delete this.parent.childNodes[this._uid];
-    }
-  }, {
-    key: 'setAttribute',
-    value: function setAttribute(attribute, value) {
-      var _this3 = this;
 
-      var attributeName = _utils2.default.dashToCamelCase(attribute);
+        Object.defineProperty(s, k, {
+          get: function get() {
+            return data.get();
+          },
+          set: function set(val) {
+            data.set(val);
+          },
+          configurable: config
+        });
+      }
 
-      this._attributes[attributeName] = value;
+      for (var key in _model) {
+        switch (_typeof(_model[key])) {
+          case 'object':
+            if (_model[key] instanceof HTMLElement) {
+              bind(_model[key], key, self, false);
+            } else {
+              bind(_model[key], key, self, true);
+              self[key] = self[key] || {};
+              this.model(_model[key], self[key]);
+            }
+            break;
 
-      Object.defineProperty(this, attributeName, {
-        get: function get() {
-          return _this3._attributes[attributeName];
-        },
-        set: function set(val) {
-          if (_this3._attributes[attributeName] !== val) {
-            _this3._attributes[attributeName] = val;
-            _this3.node.setAttribute(_utils2.default.camelCaseToDash(attributeName), _this3._attributes[attributeName]);
-          }
+          case 'function':
+            bind(_model[key], key, self, true);
+            break;
+
+          default:
+            bind(_model[key], key, self, true);
+            break;
         }
-      });
+      }
     }
   }]);
 
-  return Js;
+  return Vnode;
 }();
 
-exports.default = Js;
+exports.default = Vnode;
 module.exports = exports['default'];
 
 /***/ }),
@@ -669,53 +674,131 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
+var _vnode = __webpack_require__(2);
+
+var _vnode2 = _interopRequireDefault(_vnode);
+
+var _model = __webpack_require__(0);
+
+var _model2 = _interopRequireDefault(_model);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-var Data = function () {
-  function Data(parent, key) {
-    _classCallCheck(this, Data);
+var Js = function () {
+  function Js(args, behaviors) {
+    _classCallCheck(this, Js);
 
-    this.cb = [];
-    this.key = key;
-    this.parent = parent;
+    this.scope = document.querySelector(args.el) || document.body;
+    this.behaviors = behaviors;
   }
 
-  _createClass(Data, [{
-    key: 'val',
-    value: function val() {
-      return this.parent[this.key];
-    }
-  }, {
-    key: 'ref',
-    value: function ref() {
-      return this.parent;
-    }
-  }, {
-    key: 'set',
-    value: function set(value) {
-      if (this.parent[this.key] !== value) {
-        var old = this.parent[this.key];
+  _createClass(Js, [{
+    key: 'init',
+    value: function init() {
+      var _this = this;
 
-        this.parent[this.key] = value;
-        this.cb.forEach(function (cb) {
-          if (typeof cb === 'function') {
-            cb(value, old);
-          }
+      ;(function (cb) {
+        if (document.readyState !== 'loading') {
+          cb(_this);
+        } else {
+          document.addEventListener('DOMContentLoaded', cb(_this));
+        }
+      })(function (self) {
+        requestAnimationFrame(function () {
+          var t0 = performance.now();
+          var model = new _model2.default(_this.scope);
+          var vdom = new _vnode2.default(model, _this.behaviors);
+
+          ;(function start(vnode) {
+            vnode.init();
+
+            if (vnode.child !== null) {
+              start(vnode.child);
+            }
+
+            if (vnode.next !== null) {
+              start(vnode.next);
+            }
+          })(vdom);
+
+          setInterval(function () {
+            (function observe(vnode) {
+              var updates = {};
+            })(vdom);
+          }, 1000);
+
+          var t1 = performance.now();
+
+          console.log('Initializing the JS took ' + (t1 - t0) + ' milliseconds.');
         });
-      }
-    }
-  }, {
-    key: 'watch',
-    value: function watch(cb) {
-      this.cb.push(cb);
-      cb(this.val());
+      });
     }
   }]);
 
-  return Data;
+  return Js;
 }();
 
-exports.default = Data;
+// function init () {
+//   if (Object.keys(this.behaviors).length > 0) {
+//     let t0 = performance.now();
+//     let uid = utils.uid();
+//     let vdom = {};
+
+//     self.vdom[uid] = new Vnode({
+//       $node: scope
+//     }, self.behaviors);
+
+//     let t1 = performance.now();
+
+//     console.log('Initializing the JS took ' + (t1 - t0) + ' milliseconds.');
+//     console.log(vdom)
+//   } else {
+//     count++;
+//     if (count > 6000) {
+//       console.log('Js Dash timed out, no methods found');
+//       return;
+//     }
+//     requestAnimationFrame(init);
+//   }        
+// }
+// requestAnimationFrame(init);
+
+
+// console.log(args)
+//   this.methods = {};
+//   // Vars
+//   let scope,
+//     classPrefix,
+//     methods;
+
+//   // Define accessible methods
+//   if (functions !== undefined) {
+//     this.methods = functions;
+//   }
+
+//   // Arguments boostrapping
+//   switch (typeof args) {
+//     case 'string':
+//       scope = document.querySelector(args);
+//       break;
+
+//     case 'object':
+//       scope = document.querySelector(args.selector) || document.body;
+//       classPrefix = args.classPrefix || 'js-';
+//       methods = args.methods || this.methods;
+//       break;
+
+//     default:
+//       scope = document.body;
+//       classPrefix = 'js-';
+//       methods = this.methods;
+//       break;
+//   };
+
+
+exports.default = Js;
 module.exports = exports['default'];
 
 /***/ }),
@@ -725,72 +808,35 @@ module.exports = exports['default'];
 "use strict";
 
 
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
+var _src = __webpack_require__(3);
 
-exports.default = function ($node, lib, parent) {
-  var $children = $node.childNodes;
-  var children = {};
-  var length = $children.length;
-
-  if (length === 0) {
-    return {};
-  }
-
-  for (var i = 0; i < length; i++) {
-    var $child = $children[i];
-    var keys = Object.keys(children);
-    var uid = void 0;
-
-    if ($child.nodeType === 1) {
-      if (!$child.getAttribute('id')) {
-        uid = _utils2.default.uid();
-      } else if ($child.getAttribute('id').startsWith('_js')) {
-        uid = _utils2.default.uid();
-      } else {
-        uid = $child.getAttribute('id');
-      }
-
-      _obj2.default[uid] = new _js2.default({
-        init: false,
-        lib: lib,
-        $node: $child,
-        parent: parent,
-        uid: uid
-      });
-
-      if (keys.length > 0) {
-        children[keys.pop()].next = _obj2.default[uid];
-      }
-
-      children[uid] = _obj2.default[uid];
-    }
-  }
-
-  for (var key in children) {
-    children[key].init();
-  }
-
-  return children;
-};
-
-var _js = __webpack_require__(2);
-
-var _js2 = _interopRequireDefault(_js);
-
-var _utils = __webpack_require__(0);
-
-var _utils2 = _interopRequireDefault(_utils);
-
-var _obj = __webpack_require__(1);
-
-var _obj2 = _interopRequireDefault(_obj);
+var _src2 = _interopRequireDefault(_src);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-;
-module.exports = exports['default'];
+var js = new _src2.default({
+  el: 'body'
+}, {
+  widthObserver: function widthObserver() {},
+  block: function block() {
+    var _this = this;
+
+    this.style.color = 'blue';
+    this.style.backgroundColor = 'black';
+
+    this.style = {
+      fontSize: '32px'
+    };
+
+    this.on('sizeChange', function () {
+      console.log(_this);
+    });
+
+    this.event('click', function (e) {
+      _this.emit('sizeChange');
+    });
+  }
+}).init();
 
 /***/ }),
 /* 5 */
@@ -802,156 +848,58 @@ module.exports = exports['default'];
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.default = getTagName;
-function getTagName($node) {
-  return $node.tagName ? $node.tagName.toLowerCase() : $node.nodeName;
-};
-module.exports = exports["default"];
 
-/***/ }),
-/* 6 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.createVnode = createVnode;
-
-var _js = __webpack_require__(2);
-
-var _js2 = _interopRequireDefault(_js);
-
-var _utils = __webpack_require__(0);
-
-var _utils2 = _interopRequireDefault(_utils);
-
-var _obj = __webpack_require__(1);
-
-var _obj2 = _interopRequireDefault(_obj);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-var JsDash = function JsDash(selector) {
-  var _this = this;
+var Data = function () {
+  function Data(data) {
+    _classCallCheck(this, Data);
 
-  _classCallCheck(this, JsDash);
+    this.watchers = [];
+    this.data = data;
+  }
 
-  var $node = document.querySelector(selector) || document.body;
-
-  this.dash = {};
-
-  (function (cb) {
-    if (document.readyState !== 'loading') {
-      cb(_this);
-    } else {
-      document.addEventListener('DOMContentLoaded', cb(_this));
+  _createClass(Data, [{
+    key: 'get',
+    value: function get() {
+      if (typeof this.data === 'function') return this.data();
+      return this.data;
     }
-  })(function () {
-    function boostrap() {
-      var t0 = performance.now();
-      var uid = $node.getAttribute('id') ? $node.getAttribute('id') : _utils2.default.uid();
+  }, {
+    key: 'set',
+    value: function set(value) {
+      if (typeof this.data === 'function') {
+        this.data(value);
 
-      _obj2.default[uid] = new _js2.default({ $node: $node, lib: this.dash, uid: uid });
+        this.watchers.forEach(function (cb) {
+          if (typeof cb === 'function') {
+            cb(value);
+          }
+        });
+      } else if (this.data !== value) {
+        var old = this.data;
 
-      var t1 = performance.now();
-
-      console.log('Initializing the JS took ' + (t1 - t0) + ' milliseconds.');
-    }
-
-    if (Object.keys(_this.dash).length === 0) {
-      var check = setInterval(function () {
-        if (Object.keys(this.dash).length !== 0) {
-          boostrap.bind(this)();
-          clearInterval(check);
-        }
-      }.bind(_this), 1);
-    } else {
-      boostrap.bind(_this)();
-    }
-  });
-};
-
-exports.default = JsDash;
-function createVnode(args) {
-  // console.log(args)
-  return new _js2.default(args);
-}
-
-/***/ }),
-/* 7 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-exports.default = function () {
-  var styleNode = document.createElement('style');
-
-  styleNode.type = 'text/css';
-  return styleNode;
-};
-
-;
-module.exports = exports['default'];
-
-/***/ }),
-/* 8 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-exports.default = function (styleNode, styles, uid, cb) {
-  var head = document.head || document.querySelector('head');
-  var css = '#' + uid + '{';
-
-  Object.keys(styles).forEach(function (prop, index, array) {
-    if (styles[prop] !== '') {
-      css += _utils2.default.camelCaseToDash(prop) + ':' + styles[prop] + ';';
-    } else {
-      delete styles[prop];
-    }
-
-    if (index === array.length - 1) {
-      css += '}';
-
-      if (styleNode.styleSheet) {
-        styleNode.styleSheet.cssText = css;
-      } else {
-        styleNode.innerHTML = '';
-        styleNode.appendChild(document.createTextNode(css));
-      }
-
-      if (!styleNode.parentNode) {
-        head.appendChild(styleNode);
-      }
-
-      if (typeof cb === 'function') {
-        cb();
+        this.data = value;
+        this.watchers.forEach(function (cb) {
+          if (typeof cb === 'function') {
+            cb(value, old);
+          }
+        });
       }
     }
-  });
-};
+  }, {
+    key: 'addWatcher',
+    value: function addWatcher(watcher, self) {
+      this.watchers.push(watcher.bind(self));
+    }
+  }]);
 
-var _utils = __webpack_require__(0);
+  return Data;
+}();
 
-var _utils2 = _interopRequireDefault(_utils);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
+exports.default = Data;
 module.exports = exports['default'];
 
 /***/ })

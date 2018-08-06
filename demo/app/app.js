@@ -1,9 +1,26 @@
 import Js from '../../src';
 
-var js = new Js();
+const js = new Js({
+    el: 'body'
+  },{
+    widthObserver: function () {
 
-js.dash.body = function () {
-  var el = this.find('class', 'js-form')[0];
+    },
+    block: function () {
+      this.style.color = 'blue';
+      this.style.backgroundColor = 'black';
 
-  console.log(el);
-};
+      this.style = {
+        fontSize: '32px'
+      };
+
+      this.on('sizeChange', () => {
+        console.log(this)
+      });
+
+      this.event('click', (e) => {
+        this.emit('sizeChange');
+      });
+    }
+  }
+).init();

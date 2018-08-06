@@ -1,8 +1,8 @@
-import Js from './js';
+import Vnode from './vnode';
 import utils from './utils';
-import obj from './obj';
+import symbols from './vdom';
 
-export default function ($node, lib, parent) {
+export default function ($node, parent, behaviors) {
   let $children = $node.childNodes;
   let children = {};
   let length = $children.length;
@@ -25,25 +25,32 @@ export default function ($node, lib, parent) {
         uid = $child.getAttribute('id');
       }
 
-      obj[uid] = new Js({
+      // if (typeof symbols[uid] !== undefined && $child.tagName !== 'SCRIPT') {
+      //   console.log(uid);
+      //   throw "Duplicate IDs are not allowed"; 
+      // }
+
+      console.log(parent)
+
+      parent[uid] = new Vnode({
         init: false,
-        lib: lib,
         $node: $child,
         parent: parent,
         uid: uid
-      });
+      }, behaviors);
 
-      if (keys.length > 0) {
-        children[keys.pop()].next = obj[uid];
-      }
+      // if (keys.length > 0) {
+      //   parent[uid].prev = children[keys[keys.length - 1]];
+      //   children[keys[keys.length - 1]].next = parent[uid];
+      // }
 
-      children[uid] = obj[uid];
+      children[uid] = symbols[uid];
     }
   }
 
-  for (let key in children) {
-    children[key].init();
-  }
+  // for (let key in children) {
+  //   children[key].init();
+  // }
 
   return children;
 };

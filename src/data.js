@@ -1,24 +1,29 @@
 export default class Data {
-  constructor (parent, key) {
-    this.cb = [];
-    this.key = key;
-    this.parent = parent;
+  constructor (data) {
+    this.watchers = [];
+    this.data = data;
   }
 
-  val () {
-    return this.parent[this.key];
-  }
-
-  ref () {
-    return this.parent;
+  get () {
+    if (typeof this.data === 'function')
+      return this.data();
+    return this.data;
   }
 
   set (value) {
-    if (this.parent[this.key] !== value) {
-      let old = this.parent[this.key];
+    if (typeof this.data === 'function') {
+      this.data(value);
+      
+      this.watchers.forEach((cb) => {
+        if (typeof cb === 'function') {
+          cb(value);
+        }
+      });
+    } else if (this.data !== value) {
+      let old = this.data;
 
-      this.parent[this.key] = value;
-      this.cb.forEach((cb) => {
+      this.data = value;
+      this.watchers.forEach((cb) => {
         if (typeof cb === 'function') {
           cb(value, old);
         }
@@ -26,8 +31,7 @@ export default class Data {
     }
   }
 
-  watch (cb) {
-    this.cb.push(cb);
-    cb(this.val());
+  addWatcher (watcher, self) {
+    this.watchers.push(watcher.bind(self))
   }
 }
