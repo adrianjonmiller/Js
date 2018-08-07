@@ -73,7 +73,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 3);
+/******/ 	return __webpack_require__(__webpack_require__.s = 2);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -438,17 +438,233 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _vnode = __webpack_require__(5);
+
+var _vnode2 = _interopRequireDefault(_vnode);
+
+var _model = __webpack_require__(0);
+
+var _model2 = _interopRequireDefault(_model);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var Js = function () {
+  function Js(args, behaviors) {
+    _classCallCheck(this, Js);
+
+    this.scope = document.querySelector(args.el) || document.body;
+    this.behaviors = behaviors;
+  }
+
+  _createClass(Js, [{
+    key: 'init',
+    value: function init() {
+      var _this = this;
+
+      ;(function (cb) {
+        if (document.readyState !== 'loading') {
+          cb(_this);
+        } else {
+          document.addEventListener('DOMContentLoaded', cb(_this));
+        }
+      })(function (self) {
+        requestAnimationFrame(function () {
+          var t0 = performance.now();
+          var model = new _model2.default(_this.scope);
+          var vdom = new _vnode2.default(model, _this.behaviors);
+
+          ;(function start(vnode) {
+            vnode.init();
+
+            if (vnode.child !== null) {
+              start(vnode.child);
+            }
+
+            if (vnode.next !== null) {
+              start(vnode.next);
+            }
+          })(vdom);
+
+          var t1 = performance.now();
+
+          console.log('Initializing the JS took ' + (t1 - t0) + ' milliseconds.');
+        });
+      });
+    }
+  }]);
+
+  return Js;
+}();
+
+exports.default = Js;
+module.exports = exports['default'];
+
+/***/ }),
+/* 2 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var _src = __webpack_require__(1);
+
+var _src2 = _interopRequireDefault(_src);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+new _src2.default({
+  el: 'body'
+}, {
+  find: function find() {
+    var result = this.find('tagName', 'li', function (item) {
+      console.log(item);
+    });
+
+    console.log(result);
+  }
+}).init();
+
+/***/ }),
+/* 3 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var Data = function () {
+  function Data(data) {
+    _classCallCheck(this, Data);
+
+    this.watchers = [];
+    this.data = data;
+  }
+
+  _createClass(Data, [{
+    key: 'get',
+    value: function get() {
+      if (typeof this.data === 'function') {
+        return this.data();
+      }
+
+      return this.data;
+    }
+  }, {
+    key: 'set',
+    value: function set(value) {
+      if (typeof this.data === 'function') {
+        this.data(value);
+
+        this.watchers.forEach(function (cb) {
+          if (typeof cb === 'function') {
+            cb(value);
+          }
+        });
+      } else if (this.data !== value) {
+        var old = this.data;
+
+        this.data = value;
+        this.watchers.forEach(function (cb) {
+          if (typeof cb === 'function') {
+            cb(value, old);
+          }
+        });
+      }
+    }
+  }, {
+    key: 'addWatcher',
+    value: function addWatcher(watcher, self) {
+      this.watchers.push(watcher.bind(self));
+    }
+  }]);
+
+  return Data;
+}();
+
+exports.default = Data;
+module.exports = exports['default'];
+
+/***/ }),
+/* 4 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+// Store IDs in an array so they can be retrieved more accurate with the before and after functions
+
+exports.default = {
+  id: 0,
+  camelCaseToDash: function camelCaseToDash(myStr) {
+    return myStr.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase();
+  },
+  dashToCamelCase: function dashToCamelCase(myString) {
+    return myString.replace(/-([a-z])/g, function (g) {
+      return g[1].toUpperCase();
+    });
+  },
+  createStyleNode: function createStyleNode() {
+    var styleNode = document.createElement('style');
+
+    styleNode.type = 'text/css';
+
+    return styleNode;
+  },
+  uid: function uid() {
+    return '_js' + this.id++;
+  },
+  current: function current() {
+    return this.id;
+  },
+  prev: function prev() {
+    return '_js' + (this.id - 1);
+  },
+  next: function next() {
+    return '_js' + this.id;
+  }
+};
+module.exports = exports['default'];
+
+/***/ }),
+/* 5 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _data = __webpack_require__(2);
+var _data = __webpack_require__(3);
 
 var _data2 = _interopRequireDefault(_data);
 
 var _model2 = __webpack_require__(0);
 
 var _model3 = _interopRequireDefault(_model2);
+
+var _utils = __webpack_require__(4);
+
+var _utils2 = _interopRequireDefault(_utils);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -529,19 +745,27 @@ var Vnode = function () {
     value: function find(attrName, value, cb) {
       var result = [];
 
-      (function dig(children) {
-        for (var uid in children) {
-          var child = children[uid];
+      attrName = _utils2.default.dashToCamelCase(attrName);
 
-          dig(child.children);
-          if (child[attrName] !== undefined && child[attrName].indexOf(value) > -1) {
-            result.push(child);
+      (function dig(vnode) {
+        if (vnode !== null) {
+          if (vnode[attrName] !== undefined && vnode[attrName].indexOf(value) > -1) {
             if (typeof cb === 'function') {
-              cb(child);
+              cb(vnode);
             }
+
+            result.push(vnode);
           }
         }
-      })(this.children);
+
+        if (vnode.child !== null) {
+          dig(vnode.child);
+        }
+
+        if (vnode.next !== null) {
+          dig(vnode.next);
+        }
+      })(this.child);
       return result;
     }
   }, {
@@ -614,193 +838,6 @@ var Vnode = function () {
 }();
 
 exports.default = Vnode;
-module.exports = exports['default'];
-
-/***/ }),
-/* 2 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-var Data = function () {
-  function Data(data) {
-    _classCallCheck(this, Data);
-
-    this.watchers = [];
-    this.data = data;
-  }
-
-  _createClass(Data, [{
-    key: 'get',
-    value: function get() {
-      if (typeof this.data === 'function') {
-        return this.data();
-      }
-
-      return this.data;
-    }
-  }, {
-    key: 'set',
-    value: function set(value) {
-      if (typeof this.data === 'function') {
-        this.data(value);
-
-        this.watchers.forEach(function (cb) {
-          if (typeof cb === 'function') {
-            cb(value);
-          }
-        });
-      } else if (this.data !== value) {
-        var old = this.data;
-
-        this.data = value;
-        this.watchers.forEach(function (cb) {
-          if (typeof cb === 'function') {
-            cb(value, old);
-          }
-        });
-      }
-    }
-  }, {
-    key: 'addWatcher',
-    value: function addWatcher(watcher, self) {
-      this.watchers.push(watcher.bind(self));
-    }
-  }]);
-
-  return Data;
-}();
-
-exports.default = Data;
-module.exports = exports['default'];
-
-/***/ }),
-/* 3 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-var _vnode = __webpack_require__(1);
-
-var _vnode2 = _interopRequireDefault(_vnode);
-
-var _model = __webpack_require__(0);
-
-var _model2 = _interopRequireDefault(_model);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-var Js = function () {
-  function Js(args, behaviors) {
-    _classCallCheck(this, Js);
-
-    this.scope = document.querySelector(args.el) || document.body;
-    this.behaviors = behaviors;
-  }
-
-  _createClass(Js, [{
-    key: 'init',
-    value: function init() {
-      var _this = this;
-
-      ;(function (cb) {
-        if (document.readyState !== 'loading') {
-          cb(_this);
-        } else {
-          document.addEventListener('DOMContentLoaded', cb(_this));
-        }
-      })(function (self) {
-        requestAnimationFrame(function () {
-          var t0 = performance.now();
-          var model = new _model2.default(_this.scope);
-          var vdom = new _vnode2.default(model, _this.behaviors);
-
-          ;(function start(vnode) {
-            vnode.init();
-
-            if (vnode.child !== null) {
-              start(vnode.child);
-            }
-
-            if (vnode.next !== null) {
-              start(vnode.next);
-            }
-          })(vdom);
-
-          var t1 = performance.now();
-
-          console.log('Initializing the JS took ' + (t1 - t0) + ' milliseconds.');
-        });
-      });
-    }
-  }]);
-
-  return Js;
-}();
-
-exports.default = Js;
-module.exports = exports['default'];
-
-/***/ }),
-/* 4 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-// Store IDs in an array so they can be retrieved more accurate with the before and after functions
-
-exports.default = {
-  id: 0,
-  camelCaseToDash: function camelCaseToDash(myStr) {
-    return myStr.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase();
-  },
-  dashToCamelCase: function dashToCamelCase(myString) {
-    return myString.replace(/-([a-z])/g, function (g) {
-      return g[1].toUpperCase();
-    });
-  },
-  createStyleNode: function createStyleNode() {
-    var styleNode = document.createElement('style');
-
-    styleNode.type = 'text/css';
-
-    return styleNode;
-  },
-  uid: function uid() {
-    return '_js' + this.id++;
-  },
-  current: function current() {
-    return this.id;
-  },
-  prev: function prev() {
-    return '_js' + (this.id - 1);
-  },
-  next: function next() {
-    return '_js' + this.id;
-  }
-};
 module.exports = exports['default'];
 
 /***/ })

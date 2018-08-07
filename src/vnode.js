@@ -1,5 +1,6 @@
 import Data from './data';
 import Model from './model';
+import utils from './utils';
 
 export default class Vnode {
   constructor (model, behaviors) {
@@ -65,19 +66,28 @@ export default class Vnode {
   find (attrName, value, cb) {
     let result = [];
 
-    (function dig (children) {
-      for (let uid in children) {
-        let child = children[uid];
+    attrName = utils.dashToCamelCase(attrName);
 
-        dig(child.children);
-        if (child[attrName] !== undefined && child[attrName].indexOf(value) > -1) {
-          result.push(child);
+    (function dig (vnode) {
+      if (vnode !== null) {
+        if (vnode[attrName] !== undefined && vnode[attrName].indexOf(value) > -1) {
           if (typeof cb === 'function') {
-            cb(child);
+            cb(vnode);
           }
+
+          result.push(vnode);
         }
       }
-    })(this.children);
+
+      if (vnode.child !== null) {
+        dig(vnode.child);
+      }
+
+      if (vnode.next !== null) {
+        dig(vnode.next);
+      }
+
+    })(this.child);
     return result;
   }
 
