@@ -2,7 +2,7 @@
   "name": "Js",
   "version": "0.1.1",
   "description": "Produce universal library with webpack and es6",
-  "main": "lib/js-.js",
+  "main": "dist/Js.min.js",
   "scripts": {
     "build": "webpack --env build",
     "demo": "webpack --progress --colors --watch --env demo",
