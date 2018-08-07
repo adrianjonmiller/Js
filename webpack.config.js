@@ -16,7 +16,7 @@ if (env === 'build') {
   plugins.push(new UglifyJsPlugin({ minimize: true }));
   entry = path.join(__dirname + '/src/index.js');
   outputFile = libraryName + '.min.js';
-  outputPath = path.join(__dirname + '/lib');
+  outputPath = path.join(__dirname + '/dist');
 
 } else if (env === 'demo') {
   entry = path.join(__dirname + '/demo/app/app.js');
