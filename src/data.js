@@ -5,15 +5,17 @@ export default class Data {
   }
 
   get () {
-    if (typeof this.data === 'function')
+    if (typeof this.data === 'function') {
       return this.data();
+    }
+
     return this.data;
   }
 
   set (value) {
     if (typeof this.data === 'function') {
       this.data(value);
-      
+
       this.watchers.forEach((cb) => {
         if (typeof cb === 'function') {
           cb(value);
@@ -32,6 +34,6 @@ export default class Data {
   }
 
   addWatcher (watcher, self) {
-    this.watchers.push(watcher.bind(self))
+    this.watchers.push(watcher.bind(self));
   }
 }

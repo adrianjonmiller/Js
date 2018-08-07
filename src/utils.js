@@ -12,8 +12,9 @@ export default {
   },
   createStyleNode: function () {
     let styleNode = document.createElement('style');
+
     styleNode.type = 'text/css';
-  
+
     return styleNode;
   },
   uid: function () {

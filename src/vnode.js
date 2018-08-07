@@ -1,5 +1,4 @@
 import Data from './data';
-import utils from './utils';
 import Model from './model';
 
 export default class Vnode {
@@ -10,7 +9,7 @@ export default class Vnode {
     this.model(model);
 
     if (model.child()) {
-      model.child().parent(this)
+      model.child().parent(this);
       this.child = new Vnode(model.child(), behaviors);
     }
 
@@ -22,10 +21,10 @@ export default class Vnode {
 
     if (this.behaviors.length > 0) {
       this.behaviors.filter(val => {
-        return Object.keys(behaviors).indexOf(val) > -1
+        return Object.keys(behaviors).indexOf(val) > -1;
       }).map((behavior, index, array) => {
         this.methods[behavior] = behaviors[behavior].bind(this);
-      })
+      });
     }
   }
 
@@ -33,7 +32,7 @@ export default class Vnode {
     this.events = {
       name: event,
       fn: cb
-    }
+    };
   }
 
   emit (event) {
@@ -42,6 +41,7 @@ export default class Vnode {
 
   addChild ($newNode, behaviors) {
     let child = new Model($newNode);
+
     this.children[child.id] = new Vnode(child, behaviors);
 
     this.$node.appendChild(child.$node);
@@ -64,9 +64,11 @@ export default class Vnode {
 
   find (attrName, value, cb) {
     let result = [];
-    (function dig(children) {
+
+    (function dig (children) {
       for (let uid in children) {
         let child = children[uid];
+
         dig(child.children);
         if (child[attrName] !== undefined && child[attrName].indexOf(value) > -1) {
           result.push(child);
@@ -84,22 +86,6 @@ export default class Vnode {
     return this.class;
   }
 
-  offset (args) {
-
-    if (this.prev) {
-      this.top = parseInt(args.y, 10) + this.prev.bottom;
-
-      this.prev.event('widthUpdated', (e) => {
-        console.log(e)
-        if (this.prev.id === e.detail.id) {
-          e.preventDefault();
-          console.log(e)
-          this.top = parseInt(args.y, 10) + this.prev.bottom;
-        }
-      });
-    }
-  }
-
   init () {
     for (let functionName in this.methods) {
       try {
@@ -112,6 +98,7 @@ export default class Vnode {
 
   model (model, self) {
     var root = this;
+
     self = self || this;
 
     function bind (d, k, s, config) {
@@ -120,34 +107,34 @@ export default class Vnode {
       if (typeof root.watch[k] === 'function') {
         data.addWatcher(root.watch[k], self);
       }
-      
+
       Object.defineProperty(s, k, {
         get: () => {
           return data.get();
         },
         set: (val) => {
-          data.set(val)
+          data.set(val);
         },
         configurable: config
-      })
+      });
     }
 
     for (let key in model) {
-      switch(typeof model[key]) {
+      switch (typeof model[key]) {
         case 'object':
           if (model[key] instanceof HTMLElement) {
             bind(model[key], key, self, false);
           } else {
             bind(model[key], key, self, true);
             self[key] = self[key] || {};
-            this.model(model[key], self[key])
+            this.model(model[key], self[key]);
           }
           break;
 
         case 'function':
           bind(model[key], key, self, true);
           break;
-        
+
         default:
           bind(model[key], key, self, true);
           break;

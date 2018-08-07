@@ -73,7 +73,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 4);
+/******/ 	return __webpack_require__(__webpack_require__.s = 3);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -91,13 +91,9 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _utils = __webpack_require__(1);
+var _utils = __webpack_require__(4);
 
 var _utils2 = _interopRequireDefault(_utils);
-
-var _vnode = __webpack_require__(2);
-
-var _vnode2 = _interopRequireDefault(_vnode);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -112,6 +108,8 @@ var Model = function () {
     _classCallCheck(this, Model);
 
     var id = $node.getAttribute('id') || _utils2.default.uid();
+    var model = {};
+    var lastChild = null;
 
     this.id = id;
     this.$node = $node;
@@ -119,6 +117,7 @@ var Model = function () {
     this.class = $node.getAttribute('class') || '';
     this.$styleNode = document.createElement('style');
     this.$styleNode.type = 'text/css';
+    this.attributes = {};
     this.events = {
       styleUpdated: [function () {
         var style = '#' + _this.id + '{';
@@ -151,7 +150,7 @@ var Model = function () {
 
     $node.id = id;
 
-    var model = {
+    model = {
       id: id,
       tagName: $node.tagName.toLowerCase(),
       $node: $node,
@@ -171,8 +170,6 @@ var Model = function () {
       events: this.queueHandler.bind(this),
       emitEvent: this.eventHandler.bind(this)
     };
-
-    var lastChild = null;
 
     for (var i = 0; i < $node.childNodes.length; i++) {
       var $child = $node.childNodes[i];
@@ -197,12 +194,14 @@ var Model = function () {
         _this[attrName] = $attrValue;
 
         model[attrName] = function (val) {
-          if (val && val !== attributes[attrName]) {
+          if (!val) {
+            return _this[attrName];
+          } else if (val !== _this.attributes[attrName]) {
             _this.attrName = val;
             _this.$node.setAttribute(_utils2.default.camelCaseToDash(_this.attrName), val);
-          } else {
-            return _this[attrName];
           }
+
+          return _this[attrName];
         };
       }
     };
@@ -225,36 +224,40 @@ var Model = function () {
     value: function childHandler(child) {
       if (!child) {
         return this.child;
-      } else {
-        this.child = child;
       }
+
+      this.child = child;
+      return this.child;
     }
   }, {
     key: 'nextHandler',
     value: function nextHandler(next) {
       if (!next) {
         return this.next;
-      } else {
-        this.next = next;
       }
+
+      this.next = next;
+      return this.next;
     }
   }, {
     key: 'prevHandler',
     value: function prevHandler(prev) {
       if (!prev) {
         return this.prev;
-      } else {
-        this.prev = prev;
       }
+
+      this.prev = prev;
+      return this.prev;
     }
   }, {
     key: 'parentHandler',
     value: function parentHandler(parent) {
       if (!parent) {
         return this.parent;
-      } else {
-        this.parent = parent;
       }
+
+      this.parent = parent;
+      return this.parent;
     }
 
     // Position Handlers ********************************************************
@@ -320,26 +323,30 @@ var Model = function () {
     value: function widthHandler(width) {
       if (!width) {
         return this.width;
-      } else {
-        if (this.width !== width) {
-          this.width = width;
-          this.style.width = this.width + 'px';
-          this.setStyles();
-        }
       }
+
+      if (this.width !== width) {
+        this.width = width;
+        this.style.width = this.width + 'px';
+        this.setStyles();
+      }
+
+      return this.width;
     }
   }, {
     key: 'heightHandler',
     value: function heightHandler(height) {
       if (!height) {
         return this.height;
-      } else {
-        height = parseInt(height, 10);
-        if (this.height !== height) {
-          this.style.height = this.height + 'px';
-          this.setStyles();
-        }
       }
+
+      height = parseInt(height, 10);
+      if (this.height !== height) {
+        this.style.height = this.height + 'px';
+        this.setStyles();
+      }
+
+      return this.height;
     }
 
     // Events ********************************************************
@@ -357,7 +364,7 @@ var Model = function () {
     key: 'queueHandler',
     value: function queueHandler(event) {
       if (!this.events[event.name]) {
-        this.events[event.name] = new Array();
+        this.events[event.name] = [];
       }
       this.events[event.name].push(event.fn);
     }
@@ -369,10 +376,14 @@ var Model = function () {
     value: function classHandler(newClass) {
       if (!newClass) {
         return this.class;
-      } else if (this.class !== newClass) {
+      }
+
+      if (this.class !== newClass) {
         this.$node.setAttribute('class', newClass);
         this.class = newClass;
       }
+
+      return this.class;
     }
 
     // Styles ********************************************************
@@ -383,12 +394,16 @@ var Model = function () {
       if (!style) {
         this.eventHandler('styleUpdated');
         return this.style;
-      } else if ((typeof style === 'undefined' ? 'undefined' : _typeof(style)) === 'object') {
+      }
+
+      if ((typeof style === 'undefined' ? 'undefined' : _typeof(style)) === 'object') {
         for (var prop in style) {
           this.style[prop] = style[prop];
         }
         this.eventHandler('styleUpdated');
       }
+
+      return this.style;
     }
 
     // Value Handler ********************************************************
@@ -402,6 +417,7 @@ var Model = function () {
         this.value = value;
         this.$node.value = this.value;
       }
+      return this.value;
     }
   }]);
 
@@ -421,61 +437,14 @@ module.exports = exports['default'];
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-// Store IDs in an array so they can be retrieved more accurate with the before and after functions
-
-exports.default = {
-  id: 0,
-  camelCaseToDash: function camelCaseToDash(myStr) {
-    return myStr.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase();
-  },
-  dashToCamelCase: function dashToCamelCase(myString) {
-    return myString.replace(/-([a-z])/g, function (g) {
-      return g[1].toUpperCase();
-    });
-  },
-  createStyleNode: function createStyleNode() {
-    var styleNode = document.createElement('style');
-    styleNode.type = 'text/css';
-
-    return styleNode;
-  },
-  uid: function uid() {
-    return '_js' + this.id++;
-  },
-  current: function current() {
-    return this.id;
-  },
-  prev: function prev() {
-    return '_js' + (this.id - 1);
-  },
-  next: function next() {
-    return '_js' + this.id;
-  }
-};
-module.exports = exports['default'];
-
-/***/ }),
-/* 2 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _data = __webpack_require__(5);
+var _data = __webpack_require__(2);
 
 var _data2 = _interopRequireDefault(_data);
-
-var _utils = __webpack_require__(1);
-
-var _utils2 = _interopRequireDefault(_utils);
 
 var _model2 = __webpack_require__(0);
 
@@ -533,6 +502,7 @@ var Vnode = function () {
     key: 'addChild',
     value: function addChild($newNode, behaviors) {
       var child = new _model3.default($newNode);
+
       this.children[child.id] = new Vnode(child, behaviors);
 
       this.$node.appendChild(child.$node);
@@ -558,9 +528,11 @@ var Vnode = function () {
     key: 'find',
     value: function find(attrName, value, cb) {
       var result = [];
+
       (function dig(children) {
         for (var uid in children) {
           var child = children[uid];
+
           dig(child.children);
           if (child[attrName] !== undefined && child[attrName].indexOf(value) > -1) {
             result.push(child);
@@ -579,24 +551,6 @@ var Vnode = function () {
       return this.class;
     }
   }, {
-    key: 'offset',
-    value: function offset(args) {
-      var _this2 = this;
-
-      if (this.prev) {
-        this.top = parseInt(args.y, 10) + this.prev.bottom;
-
-        this.prev.event('widthUpdated', function (e) {
-          console.log(e);
-          if (_this2.prev.id === e.detail.id) {
-            e.preventDefault();
-            console.log(e);
-            _this2.top = parseInt(args.y, 10) + _this2.prev.bottom;
-          }
-        });
-      }
-    }
-  }, {
     key: 'init',
     value: function init() {
       for (var functionName in this.methods) {
@@ -611,6 +565,7 @@ var Vnode = function () {
     key: 'model',
     value: function model(_model, self) {
       var root = this;
+
       self = self || this;
 
       function bind(d, k, s, config) {
@@ -662,6 +617,73 @@ exports.default = Vnode;
 module.exports = exports['default'];
 
 /***/ }),
+/* 2 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var Data = function () {
+  function Data(data) {
+    _classCallCheck(this, Data);
+
+    this.watchers = [];
+    this.data = data;
+  }
+
+  _createClass(Data, [{
+    key: 'get',
+    value: function get() {
+      if (typeof this.data === 'function') {
+        return this.data();
+      }
+
+      return this.data;
+    }
+  }, {
+    key: 'set',
+    value: function set(value) {
+      if (typeof this.data === 'function') {
+        this.data(value);
+
+        this.watchers.forEach(function (cb) {
+          if (typeof cb === 'function') {
+            cb(value);
+          }
+        });
+      } else if (this.data !== value) {
+        var old = this.data;
+
+        this.data = value;
+        this.watchers.forEach(function (cb) {
+          if (typeof cb === 'function') {
+            cb(value, old);
+          }
+        });
+      }
+    }
+  }, {
+    key: 'addWatcher',
+    value: function addWatcher(watcher, self) {
+      this.watchers.push(watcher.bind(self));
+    }
+  }]);
+
+  return Data;
+}();
+
+exports.default = Data;
+module.exports = exports['default'];
+
+/***/ }),
 /* 3 */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -674,7 +696,7 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _vnode = __webpack_require__(2);
+var _vnode = __webpack_require__(1);
 
 var _vnode2 = _interopRequireDefault(_vnode);
 
@@ -723,12 +745,6 @@ var Js = function () {
             }
           })(vdom);
 
-          setInterval(function () {
-            (function observe(vnode) {
-              var updates = {};
-            })(vdom);
-          }, 1000);
-
           var t1 = performance.now();
 
           console.log('Initializing the JS took ' + (t1 - t0) + ' milliseconds.');
@@ -740,64 +756,6 @@ var Js = function () {
   return Js;
 }();
 
-// function init () {
-//   if (Object.keys(this.behaviors).length > 0) {
-//     let t0 = performance.now();
-//     let uid = utils.uid();
-//     let vdom = {};
-
-//     self.vdom[uid] = new Vnode({
-//       $node: scope
-//     }, self.behaviors);
-
-//     let t1 = performance.now();
-
-//     console.log('Initializing the JS took ' + (t1 - t0) + ' milliseconds.');
-//     console.log(vdom)
-//   } else {
-//     count++;
-//     if (count > 6000) {
-//       console.log('Js Dash timed out, no methods found');
-//       return;
-//     }
-//     requestAnimationFrame(init);
-//   }        
-// }
-// requestAnimationFrame(init);
-
-
-// console.log(args)
-//   this.methods = {};
-//   // Vars
-//   let scope,
-//     classPrefix,
-//     methods;
-
-//   // Define accessible methods
-//   if (functions !== undefined) {
-//     this.methods = functions;
-//   }
-
-//   // Arguments boostrapping
-//   switch (typeof args) {
-//     case 'string':
-//       scope = document.querySelector(args);
-//       break;
-
-//     case 'object':
-//       scope = document.querySelector(args.selector) || document.body;
-//       classPrefix = args.classPrefix || 'js-';
-//       methods = args.methods || this.methods;
-//       break;
-
-//     default:
-//       scope = document.body;
-//       classPrefix = 'js-';
-//       methods = this.methods;
-//       break;
-//   };
-
-
 exports.default = Js;
 module.exports = exports['default'];
 
@@ -808,98 +766,41 @@ module.exports = exports['default'];
 "use strict";
 
 
-var _src = __webpack_require__(3);
-
-var _src2 = _interopRequireDefault(_src);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-var js = new _src2.default({
-  el: 'body'
-}, {
-  widthObserver: function widthObserver() {},
-  block: function block() {
-    var _this = this;
-
-    this.style.color = 'blue';
-    this.style.backgroundColor = 'black';
-
-    this.style = {
-      fontSize: '32px'
-    };
-
-    this.on('sizeChange', function () {
-      console.log(_this);
-    });
-
-    this.event('click', function (e) {
-      _this.emit('sizeChange');
-    });
-  }
-}).init();
-
-/***/ }),
-/* 5 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
+// Store IDs in an array so they can be retrieved more accurate with the before and after functions
 
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+exports.default = {
+  id: 0,
+  camelCaseToDash: function camelCaseToDash(myStr) {
+    return myStr.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase();
+  },
+  dashToCamelCase: function dashToCamelCase(myString) {
+    return myString.replace(/-([a-z])/g, function (g) {
+      return g[1].toUpperCase();
+    });
+  },
+  createStyleNode: function createStyleNode() {
+    var styleNode = document.createElement('style');
 
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+    styleNode.type = 'text/css';
 
-var Data = function () {
-  function Data(data) {
-    _classCallCheck(this, Data);
-
-    this.watchers = [];
-    this.data = data;
+    return styleNode;
+  },
+  uid: function uid() {
+    return '_js' + this.id++;
+  },
+  current: function current() {
+    return this.id;
+  },
+  prev: function prev() {
+    return '_js' + (this.id - 1);
+  },
+  next: function next() {
+    return '_js' + this.id;
   }
-
-  _createClass(Data, [{
-    key: 'get',
-    value: function get() {
-      if (typeof this.data === 'function') return this.data();
-      return this.data;
-    }
-  }, {
-    key: 'set',
-    value: function set(value) {
-      if (typeof this.data === 'function') {
-        this.data(value);
-
-        this.watchers.forEach(function (cb) {
-          if (typeof cb === 'function') {
-            cb(value);
-          }
-        });
-      } else if (this.data !== value) {
-        var old = this.data;
-
-        this.data = value;
-        this.watchers.forEach(function (cb) {
-          if (typeof cb === 'function') {
-            cb(value, old);
-          }
-        });
-      }
-    }
-  }, {
-    key: 'addWatcher',
-    value: function addWatcher(watcher, self) {
-      this.watchers.push(watcher.bind(self));
-    }
-  }]);
-
-  return Data;
-}();
-
-exports.default = Data;
+};
 module.exports = exports['default'];
 
 /***/ })
