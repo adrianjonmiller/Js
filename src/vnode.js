@@ -29,6 +29,10 @@ export default class Vnode {
     }
   }
 
+  states (value) {
+    this.state = value
+  }
+
   on (event, cb) {
     this.events = {
       name: event,
@@ -97,6 +101,8 @@ export default class Vnode {
   }
 
   init () {
+    var self = this;
+
     for (let functionName in this.methods) {
       try {
         (this.methods[functionName])();
@@ -104,6 +110,18 @@ export default class Vnode {
         console.error(error.stack);
       }
     }
+
+    this.states({
+      default: {
+        top: self.top,
+        bottom: self.bottom,
+        left: self.left,
+        right: self.right,
+        width: self.width,
+        height: self.height,
+        style: JSON.parse(JSON.stringify(self.style))
+      }
+    })
   }
 
   model (model, self) {

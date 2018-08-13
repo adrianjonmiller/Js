@@ -73,7 +73,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 2);
+/******/ 	return __webpack_require__(__webpack_require__.s = 3);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -91,7 +91,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _utils = __webpack_require__(4);
+var _utils = __webpack_require__(1);
 
 var _utils2 = _interopRequireDefault(_utils);
 
@@ -120,6 +120,11 @@ var Model = function () {
     this.attributes = {};
     this.events = {
       styleUpdated: [function () {
+        if (Object.keys(_this.style).length === 0) {
+          _this.$styleNode.innerHTML = '';
+          return;
+        }
+
         var style = '#' + _this.id + '{';
 
         for (var prop in _this.style) {
@@ -135,12 +140,15 @@ var Model = function () {
         _this.$styleNode.innerHTML = style;
       }]
     };
+    this.states = {};
     this.parent = null;
     this.prev = null;
     this.next = null;
     this.child = null;
-    this.value = '';
     this.behaviors = $node.getAttribute('data-behavior') ? $node.getAttribute('data-behavior').split(' ') : [];
+
+    this.state = 'default';
+    this.value = '';
     this.width = $node.offsetWidth;
     this.height = $node.offsetHeight;
     this.top = $node.offsetTop;
@@ -168,7 +176,8 @@ var Model = function () {
       left: this.leftHandler.bind(this),
       right: this.rightHandler.bind(this),
       events: this.queueHandler.bind(this),
-      emitEvent: this.eventHandler.bind(this)
+      emitEvent: this.eventHandler.bind(this),
+      state: this.stateHandler.bind(this)
     };
 
     for (var i = 0; i < $node.childNodes.length; i++) {
@@ -265,10 +274,10 @@ var Model = function () {
   }, {
     key: 'bottomHandler',
     value: function bottomHandler(bottom) {
-      if (bottom) {
+      if (typeof bottom === 'number') {
         this.bottom = bottom;
         this.style.bottom = this.bottom + 'px';
-        this.setStyles();
+        this.eventHandler('styleUpdated');
       } else {
         if (this.$node.offsetTop + this.$node.offsetHeight !== this.bottom) {
           this.bottom = this.$node.offsetTop + this.$node.offsetHeight;
@@ -279,10 +288,10 @@ var Model = function () {
   }, {
     key: 'topHandler',
     value: function topHandler(top) {
-      if (top) {
+      if (typeof top === 'number') {
         this.top = top;
         this.style.top = this.top + 'px';
-        this.setStyles();
+        this.eventHandler('styleUpdated');
       } else {
         if (this.$node.offsetTop !== this.top) {
           this.right = this.$node.offsetTop;
@@ -293,10 +302,10 @@ var Model = function () {
   }, {
     key: 'leftHandler',
     value: function leftHandler(left) {
-      if (left) {
+      if (typeof left === 'number') {
         this.left = left;
         this.style.left = this.left + 'px';
-        this.setStyles();
+        this.eventHandler('styleUpdated');
       } else {
         if (this.$node.offsetLeft !== this.right) {
           this.right = this.$node.offsetLeft;
@@ -307,10 +316,10 @@ var Model = function () {
   }, {
     key: 'rightHandler',
     value: function rightHandler(right) {
-      if (right) {
+      if (typeof right === 'number') {
         this.right = right;
         this.style.right = this.right + 'px';
-        this.setStyles();
+        this.eventHandler('styleUpdated');
       } else {
         if (this.$node.offsetLeft + this.$node.offsetWidth !== this.right) {
           this.right = this.$node.offsetLeft + this.$node.offsetWidth;
@@ -321,14 +330,14 @@ var Model = function () {
   }, {
     key: 'widthHandler',
     value: function widthHandler(width) {
-      if (!width) {
+      if (typeof width !== 'number') {
         return this.width;
       }
 
       if (this.width !== width) {
         this.width = width;
         this.style.width = this.width + 'px';
-        this.setStyles();
+        this.eventHandler('styleUpdated');
       }
 
       return this.width;
@@ -336,14 +345,16 @@ var Model = function () {
   }, {
     key: 'heightHandler',
     value: function heightHandler(height) {
-      if (!height) {
+      if (typeof height !== 'number') {
         return this.height;
       }
 
       height = parseInt(height, 10);
+
       if (this.height !== height) {
+        this.height = height;
         this.style.height = this.height + 'px';
-        this.setStyles();
+        this.eventHandler('styleUpdated');
       }
 
       return this.height;
@@ -358,6 +369,10 @@ var Model = function () {
         this.events[event].map(function (fn) {
           requestAnimationFrame(fn);
         });
+      }
+
+      if (this.parent) {
+        this.parent.emit(event);
       }
     }
   }, {
@@ -397,9 +412,14 @@ var Model = function () {
       }
 
       if ((typeof style === 'undefined' ? 'undefined' : _typeof(style)) === 'object') {
-        for (var prop in style) {
-          this.style[prop] = style[prop];
+        if (Object.keys(style).length > 0) {
+          for (var prop in style) {
+            this.style[prop] = style[prop];
+          }
+        } else {
+          this.style = {};
         }
+
         this.eventHandler('styleUpdated');
       }
 
@@ -419,6 +439,55 @@ var Model = function () {
       }
       return this.value;
     }
+
+    // State Handler ********************************************************
+
+  }, {
+    key: 'stateHandler',
+    value: function stateHandler(value) {
+      var _this2 = this;
+
+      var stateKeys = ['top', 'bottom', 'left', 'right', 'value', 'width', 'height'];
+
+      if (!value) {
+        return this.state;
+      }
+
+      if (typeof value === 'string') {
+        this.state = value;
+        if (this.states[value] !== undefined) {
+          stateKeys.forEach(function (key) {
+            _this2[key + 'Handler'](_this2.states[value][key]);
+          });
+
+          if (this.states[value].style !== undefined) {
+            if (value === 'default') {
+              this.style = this.states[value].style;
+            } else {
+              for (var prop in this.states[value].style) {
+                this.style[prop] = this.states[value].style[prop];
+              }
+            }
+
+            this.eventHandler('styleUpdated');
+          }
+
+          if (this.states[value].methods !== undefined) {
+            for (var func in this.states[value].methods) {
+              this.states[value].methods[func]();
+            }
+          }
+        }
+      }
+
+      if ((typeof value === 'undefined' ? 'undefined' : _typeof(value)) === 'object') {
+        for (var key in value) {
+          this.states[key] = value[key];
+        }
+      }
+
+      return this.state;
+    }
   }]);
 
   return Model;
@@ -429,6 +498,50 @@ module.exports = exports['default'];
 
 /***/ }),
 /* 1 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+// Store IDs in an array so they can be retrieved more accurate with the before and after functions
+
+exports.default = {
+  id: 0,
+  camelCaseToDash: function camelCaseToDash(myStr) {
+    return myStr.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase();
+  },
+  dashToCamelCase: function dashToCamelCase(myString) {
+    return myString.replace(/-([a-z])/g, function (g) {
+      return g[1].toUpperCase();
+    });
+  },
+  createStyleNode: function createStyleNode() {
+    var styleNode = document.createElement('style');
+
+    styleNode.type = 'text/css';
+
+    return styleNode;
+  },
+  uid: function uid() {
+    return '_js' + this.id++;
+  },
+  current: function current() {
+    return this.id;
+  },
+  prev: function prev() {
+    return '_js' + (this.id - 1);
+  },
+  next: function next() {
+    return '_js' + this.id;
+  }
+};
+module.exports = exports['default'];
+
+/***/ }),
+/* 2 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -453,18 +566,18 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 var Js = function () {
-  function Js(args, behaviors) {
+  function Js(behaviors) {
     _classCallCheck(this, Js);
 
-    this.scope = document.querySelector(args.el) || document.body;
     this.behaviors = behaviors;
   }
 
   _createClass(Js, [{
     key: 'init',
-    value: function init() {
+    value: function init(el) {
       var _this = this;
 
+      this.scope = document.querySelector(el) || document.body;
       ;(function (cb) {
         if (document.readyState !== 'loading') {
           cb(_this);
@@ -491,7 +604,7 @@ var Js = function () {
 
           var t1 = performance.now();
 
-          console.log('Initializing the JS took ' + (t1 - t0) + ' milliseconds.');
+          console.log('JSI attached in ' + (t1 - t0) + ' milliseconds.');
         });
       });
     }
@@ -504,32 +617,388 @@ exports.default = Js;
 module.exports = exports['default'];
 
 /***/ }),
-/* 2 */
+/* 3 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var _src = __webpack_require__(1);
+var _src = __webpack_require__(2);
 
 var _src2 = _interopRequireDefault(_src);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 new _src2.default({
-  el: 'body'
-}, {
-  find: function find() {
-    var result = this.find('tagName', 'li', function (item) {
-      console.log(item);
+  global: function global() {
+    this.style.position = 'absolute';
+    this.bottom = 0;
+    this.top = 0;
+    this.right = 0;
+    this.left = 0;
+  },
+  sidebar: function sidebar() {
+    this.style.position = 'absolute';
+    this.bottom = 0;
+    this.top = 50;
+    this.left = 0;
+    this.width = 200;
+    this.style.backgroundColor = '#ececec';
+    this.style.borderRight = 'solid thin #AAAAAA';
+    this.style.boxSizing = 'border-box';
+  },
+  properties: function properties() {
+    this.style.position = 'absolute';
+    this.bottom = 0;
+    this.top = 50;
+    this.right = 0;
+    this.width = 200;
+    this.style.backgroundColor = '#ececec';
+    this.style.borderLeft = 'solid thin #AAAAAA';
+    this.style.boxSizing = 'border-box';
+  },
+  toolbar: function toolbar() {
+    var _this = this;
+
+    this.style.position = 'absolute';
+    this.left = 0;
+    this.top = 0;
+    this.right = 0;
+    this.height = 50;
+    this.style.backgroundColor = '#dedede';
+    this.style.borderBottom = 'solid thin #AAAAAA';
+    this.on('success', function () {
+      console.log(_this);
+    });
+  },
+  main: function main() {
+    this.top = 50;
+    this.left = 200;
+    this.right = 200;
+    this.bottom = 0;
+    this.style.backgroundColor = '#eee';
+    this.style.overflow = 'hidden';
+    this.style.position = 'absolute';
+  },
+  buttonTest: function buttonTest() {
+    var _this2 = this;
+
+    this.event('click', function (e) {
+      _this2.emit('success');
+    });
+  },
+  sizer: function sizer(target) {
+    var _this3 = this;
+
+    this.style.position = 'absolute';
+    this.top = 0;
+    this.left = 0;
+    this.width = 100;
+    this.height = 100;
+    this.style.border = 'solid thin black';
+
+    this.on('dragTopRight', function () {
+      var height = _this3.height;
+      var offsetY = _this3.top;
+      var offsetX = _this3.left;
+
+      _this3.parent.$node.onmousemove = function (e) {
+        e.preventDefault();
+        _this3.height = offsetY - (e.clientY - _this3.parent.top) + height;
+        _this3.top = e.clientY - _this3.parent.top;
+        _this3.next.height = offsetY - (e.clientY - _this3.parent.top) + height;
+        _this3.next.top = e.clientY - _this3.parent.top;
+        _this3.width = e.clientX - offsetX - _this3.parent.left;
+        _this3.next.width = e.clientX - offsetX - _this3.parent.left;
+      };
     });
 
-    console.log(result);
+    this.on('dragTopLeft', function () {
+      var height = _this3.height;
+      var offsetY = _this3.top;
+      var offsetX = _this3.left;
+      var width = _this3.width;
+
+      _this3.parent.$node.onmousemove = function (e) {
+        e.preventDefault();
+        _this3.height = offsetY - (e.clientY - _this3.parent.top) + height;
+        _this3.top = e.clientY - _this3.parent.top;
+        _this3.next.height = offsetY - (e.clientY - _this3.parent.top) + height;
+        _this3.next.top = e.clientY - _this3.parent.top;
+
+        _this3.width = offsetX - (e.clientX - _this3.parent.left) + width;
+        _this3.left = e.clientX - _this3.parent.left;
+        _this3.next.width = offsetX - (e.clientX - _this3.parent.left) + width;
+        _this3.next.left = e.clientX - _this3.parent.left;
+      };
+    });
+
+    this.on('dragTop', function () {
+      var height = _this3.height;
+      var offsetY = _this3.top;
+
+      _this3.parent.$node.onmousemove = function (e) {
+        e.preventDefault();
+        _this3.height = offsetY - (e.clientY - _this3.parent.top) + height;
+        _this3.top = e.clientY - _this3.parent.top;
+        _this3.next.height = offsetY - (e.clientY - _this3.parent.top) + height;
+        _this3.next.top = e.clientY - _this3.parent.top;
+      };
+    });
+
+    this.on('dragLeft', function () {
+
+      var offsetX = _this3.left;
+      var width = _this3.width;
+
+      _this3.parent.$node.onmousemove = function (e) {
+        e.preventDefault();
+
+        _this3.width = offsetX - (e.clientX - _this3.parent.left) + width;
+        _this3.next.width = offsetX - (e.clientX - _this3.parent.left) + width;
+        _this3.left = e.clientX - _this3.parent.left;
+        _this3.next.left = e.clientX - _this3.parent.left;
+      };
+    });
+
+    this.on('dragRight', function () {
+      var offsetX = _this3.left;
+
+      _this3.parent.$node.onmousemove = function (e) {
+        e.preventDefault();
+
+        _this3.width = e.clientX - offsetX - _this3.parent.left;
+        _this3.next.width = e.clientX - offsetX - _this3.parent.left;
+      };
+    });
+
+    this.on('dragBottomRight', function () {
+      var offsetX = _this3.left;
+      var offsetY = _this3.top;
+
+      _this3.parent.$node.onmousemove = function (e) {
+        e.preventDefault();
+
+        _this3.width = e.clientX - offsetX - _this3.parent.left;
+        _this3.height = e.clientY - offsetY - _this3.parent.top;
+        _this3.next.width = e.clientX - offsetX - _this3.parent.left;
+        _this3.next.height = e.clientY - offsetY - _this3.parent.top;
+      };
+    });
+
+    this.on('dragBottomLeft', function () {
+      var offsetX = _this3.left;
+      var width = _this3.width;
+      var offsetY = _this3.top;
+
+      _this3.parent.$node.onmousemove = function (e) {
+        e.preventDefault();
+
+        _this3.width = offsetX - (e.clientX - _this3.parent.left) + width;
+        _this3.height = e.clientY - offsetY - _this3.parent.top;
+        _this3.next.width = offsetX - (e.clientX - _this3.parent.left) + width;
+        _this3.next.height = e.clientY - offsetY - _this3.parent.top;
+        _this3.next.left = e.clientX - _this3.parent.left;
+        _this3.left = e.clientX - _this3.parent.left;
+      };
+    });
+
+    this.on('dragBottom', function () {
+      var offsetY = _this3.top;
+
+      _this3.parent.$node.onmousemove = function (e) {
+        e.preventDefault();
+
+        _this3.height = e.clientY - offsetY - _this3.parent.top;
+        _this3.next.height = e.clientY - offsetY - _this3.parent.top;
+      };
+    });
+
+    this.on('release', function () {
+      _this3.parent.$node.onmousemove = null;
+    });
+
+    this.parent.event('mouseup', function () {
+      _this3.parent.$node.onmousemove = null;
+    });
+  },
+  dragTopRight: function dragTopRight() {
+    var _this4 = this;
+
+    this.style.transform = 'translate(50%, -50%)';
+    this.width = 10;
+    this.height = 10;
+    this.style.border = 'solid thin black';
+    this.style.cursor = 'nesw-resize';
+    this.style.backgroundColor = 'black';
+
+    this.event('mousedown', function (e) {
+      _this4.emit("dragTopRight");
+    });
+
+    this.event('mouseup', function (e) {
+      _this4.emit("release");
+    });
+  },
+  dragTopLeft: function dragTopLeft() {
+    var _this5 = this;
+
+    this.style.transform = 'translate(-50%, -50%)';
+    this.width = 10;
+    this.height = 10;
+    this.style.border = 'solid thin black';
+    this.style.cursor = 'nwse-resize';
+    this.style.backgroundColor = 'black';
+
+    this.event('mousedown', function (e) {
+      _this5.emit("dragTopLeft");
+    });
+
+    this.event('mouseup', function (e) {
+      _this5.emit("release");
+    });
+  },
+  dragTop: function dragTop() {
+    var _this6 = this;
+
+    this.style.transform = 'translate(-50%, -50%)';
+    this.width = 10;
+    this.height = 10;
+    this.style.border = 'solid thin black';
+    this.style.cursor = 'ns-resize';
+    this.style.backgroundColor = 'black';
+
+    this.event('mousedown', function (e) {
+      _this6.emit("dragTop");
+    });
+
+    this.event('mouseup', function (e) {
+      _this6.emit("release");
+    });
+  },
+  dragBottom: function dragBottom() {
+    var _this7 = this;
+
+    this.style.transform = 'translate(-50%, 50%)';
+    this.width = 10;
+    this.height = 10;
+    this.style.border = 'solid thin black';
+    this.style.cursor = 'ns-resize';
+    this.style.backgroundColor = 'black';
+
+    this.event('mousedown', function (e) {
+      _this7.emit("dragBottom");
+    });
+
+    this.event('mouseup', function (e) {
+      _this7.emit("release");
+    });
+  },
+  dragBottomRight: function dragBottomRight() {
+    var _this8 = this;
+
+    this.style.transform = 'translate(50%, 50%)';
+    this.width = 10;
+    this.height = 10;
+    this.style.border = 'solid thin black';
+    this.style.cursor = 'nwse-resize';
+    this.style.backgroundColor = 'black';
+
+    this.event('mousedown', function (e) {
+      _this8.emit("dragBottomRight");
+    });
+
+    this.event('mouseup', function (e) {
+      _this8.emit("release");
+    });
+  },
+  dragRight: function dragRight() {
+    var _this9 = this;
+
+    this.style.transform = 'translate(50%)';
+    this.width = 10;
+    this.height = 10;
+    this.style.border = 'solid thin black';
+    this.style.cursor = 'ew-resize';
+    this.style.backgroundColor = 'black';
+
+    this.event('mousedown', function (e) {
+      _this9.emit("dragRight");
+    });
+
+    this.event('mouseup', function (e) {
+      _this9.emit("release");
+    });
+  },
+  dragLeft: function dragLeft() {
+    var _this10 = this;
+
+    this.style.transform = 'translate(-50%)';
+    this.width = 10;
+    this.height = 10;
+    this.style.border = 'solid thin black';
+    this.style.cursor = 'ew-resize';
+    this.style.backgroundColor = 'black';
+
+    this.event('mousedown', function (e) {
+      _this10.emit("dragLeft");
+    });
+
+    this.event('mouseup', function (e) {
+      _this10.emit("release");
+    });
+  },
+  dragBottomLeft: function dragBottomLeft() {
+    var _this11 = this;
+
+    this.style.transform = 'translate(-50%, 50%)';
+    this.width = 10;
+    this.height = 10;
+    this.style.border = 'solid thin black';
+    this.style.cursor = 'nesw-resize';
+    this.style.backgroundColor = 'black';
+
+    this.event('mousedown', function (e) {
+      _this11.emit("dragBottomLeft");
+    });
+
+    this.event('mouseup', function (e) {
+      _this11.emit("release");
+    });
+  },
+  block: function block() {
+    var _this12 = this;
+
+    this.width = 100;
+    this.height = 100;
+    this.style.backgroundColor = 'blue';
+    this.style.position = 'absolute';
+
+    this.emit('target');
+
+    this.event('mousedown', function (e) {
+      e.preventDefault();
+      var mouseOffX = e.clientX - _this12.left;
+      var mouseOffY = e.clientY - _this12.top;
+      _this12.style.outline = '1px solid black';
+
+      _this12.parent.$node.onmousemove = function (e) {
+        e.preventDefault();
+        _this12.top = e.clientY - mouseOffY;
+        _this12.left = e.clientX - mouseOffX;
+        _this12.prev.top = e.clientY - mouseOffY;
+        _this12.prev.left = e.clientX - mouseOffX;
+      };
+    });
+
+    this.event('mouseup', function (e) {
+      _this12.parent.$node.onmousemove = null;
+    });
   }
-}).init();
+}).init('#scope');
 
 /***/ }),
-/* 3 */
+/* 4 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -596,50 +1065,6 @@ exports.default = Data;
 module.exports = exports['default'];
 
 /***/ }),
-/* 4 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-// Store IDs in an array so they can be retrieved more accurate with the before and after functions
-
-exports.default = {
-  id: 0,
-  camelCaseToDash: function camelCaseToDash(myStr) {
-    return myStr.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase();
-  },
-  dashToCamelCase: function dashToCamelCase(myString) {
-    return myString.replace(/-([a-z])/g, function (g) {
-      return g[1].toUpperCase();
-    });
-  },
-  createStyleNode: function createStyleNode() {
-    var styleNode = document.createElement('style');
-
-    styleNode.type = 'text/css';
-
-    return styleNode;
-  },
-  uid: function uid() {
-    return '_js' + this.id++;
-  },
-  current: function current() {
-    return this.id;
-  },
-  prev: function prev() {
-    return '_js' + (this.id - 1);
-  },
-  next: function next() {
-    return '_js' + this.id;
-  }
-};
-module.exports = exports['default'];
-
-/***/ }),
 /* 5 */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -654,7 +1079,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _data = __webpack_require__(3);
+var _data = __webpack_require__(4);
 
 var _data2 = _interopRequireDefault(_data);
 
@@ -662,7 +1087,7 @@ var _model2 = __webpack_require__(0);
 
 var _model3 = _interopRequireDefault(_model2);
 
-var _utils = __webpack_require__(4);
+var _utils = __webpack_require__(1);
 
 var _utils2 = _interopRequireDefault(_utils);
 
@@ -702,6 +1127,11 @@ var Vnode = function () {
   }
 
   _createClass(Vnode, [{
+    key: 'states',
+    value: function states(value) {
+      this.state = value;
+    }
+  }, {
     key: 'on',
     value: function on(event, cb) {
       this.events = {
@@ -777,6 +1207,8 @@ var Vnode = function () {
   }, {
     key: 'init',
     value: function init() {
+      var self = this;
+
       for (var functionName in this.methods) {
         try {
           this.methods[functionName]();
@@ -784,6 +1216,18 @@ var Vnode = function () {
           console.error(error.stack);
         }
       }
+
+      this.states({
+        default: {
+          top: self.top,
+          bottom: self.bottom,
+          left: self.left,
+          right: self.right,
+          width: self.width,
+          height: self.height,
+          style: JSON.parse(JSON.stringify(self.style))
+        }
+      });
     }
   }, {
     key: 'model',

@@ -2,13 +2,12 @@ import Vnode from './vnode';
 import Model from './model';
 
 export default class Js {
-
-  constructor (args, behaviors) {
-    this.scope = document.querySelector(args.el) || document.body;
+  constructor (behaviors) {
     this.behaviors = behaviors;
   }
-
-  init () {
+  
+  init (el) {
+    this.scope = document.querySelector(el) || document.body;
     ;((cb) => {
       if (document.readyState !== 'loading') {
         cb(this);
@@ -35,7 +34,7 @@ export default class Js {
 
         let t1 = performance.now();
 
-        console.log('Initializing the JS took ' + (t1 - t0) + ' milliseconds.');
+        console.log('JSI attached in ' + (t1 - t0) + ' milliseconds.');
       });
     });
   }

@@ -17,6 +17,11 @@ export default class Model {
     this.attributes = {};
     this.events = {
       styleUpdated: [() => {
+        if (Object.keys(this.style).length === 0) {
+          this.$styleNode.innerHTML = ''
+          return
+        }
+
         var style = `#${this.id}{`;
 
         for (let prop in this.style) {
@@ -27,17 +32,21 @@ export default class Model {
 
         if (this.$styleNode.parentNode === null) {
           head.appendChild(this.$styleNode);
-        }
+        } 
 
         this.$styleNode.innerHTML = style;
       }]
     };
+    this.states = {};
     this.parent = null;
     this.prev = null;
     this.next = null;
     this.child = null;
-    this.value = '';
     this.behaviors = $node.getAttribute('data-behavior') ? $node.getAttribute('data-behavior').split(' ') : [];
+
+
+    this.state = 'default';
+    this.value = '';
     this.width = $node.offsetWidth;
     this.height = $node.offsetHeight;
     this.top = $node.offsetTop;
@@ -65,7 +74,8 @@ export default class Model {
       left: this.leftHandler.bind(this),
       right: this.rightHandler.bind(this),
       events: this.queueHandler.bind(this),
-      emitEvent: this.eventHandler.bind(this)
+      emitEvent: this.eventHandler.bind(this),
+      state: this.stateHandler.bind(this)
     };
 
     for (let i = 0; i < $node.childNodes.length; i++) {
@@ -151,10 +161,10 @@ export default class Model {
   // Position Handlers ********************************************************
 
   bottomHandler (bottom) {
-    if (bottom) {
+    if (typeof bottom === 'number') {
       this.bottom = bottom;
       this.style.bottom = this.bottom + 'px';
-      this.setStyles();
+      this.eventHandler('styleUpdated');
     } else {
       if (this.$node.offsetTop + this.$node.offsetHeight !== this.bottom) {
         this.bottom = this.$node.offsetTop + this.$node.offsetHeight;
@@ -164,10 +174,10 @@ export default class Model {
   }
 
   topHandler (top) {
-    if (top) {
+    if (typeof top === 'number') {
       this.top = top;
       this.style.top = this.top + 'px';
-      this.setStyles();
+      this.eventHandler('styleUpdated');
     } else {
       if (this.$node.offsetTop !== this.top) {
         this.right = this.$node.offsetTop;
@@ -177,10 +187,10 @@ export default class Model {
   }
 
   leftHandler (left) {
-    if (left) {
+    if (typeof left === 'number') {
       this.left = left;
       this.style.left = this.left + 'px';
-      this.setStyles();
+      this.eventHandler('styleUpdated');
     } else {
       if (this.$node.offsetLeft !== this.right) {
         this.right = this.$node.offsetLeft;
@@ -190,10 +200,10 @@ export default class Model {
   }
 
   rightHandler (right) {
-    if (right) {
+    if (typeof right === 'number') {
       this.right = right;
       this.style.right = this.right + 'px';
-      this.setStyles();
+      this.eventHandler('styleUpdated');
     } else {
       if (this.$node.offsetLeft + this.$node.offsetWidth !== this.right) {
         this.right = this.$node.offsetLeft + this.$node.offsetWidth;
@@ -203,28 +213,30 @@ export default class Model {
   }
 
   widthHandler (width) {
-    if (!width) {
+    if (typeof width !== 'number') {
       return this.width;
     }
 
     if (this.width !== width) {
       this.width = width;
       this.style.width = this.width + 'px';
-      this.setStyles();
+      this.eventHandler('styleUpdated');
     }
 
     return this.width;
   }
 
   heightHandler (height) {
-    if (!height) {
+    if (typeof height !== 'number') {
       return this.height;
     }
 
     height = parseInt(height, 10);
+
     if (this.height !== height) {
+      this.height = height;
       this.style.height = this.height + 'px';
-      this.setStyles();
+      this.eventHandler('styleUpdated');
     }
 
     return this.height;
@@ -238,6 +250,10 @@ export default class Model {
         requestAnimationFrame(fn);
       });
     }
+
+    if (this.parent) {
+      this.parent.emit(event)
+    } 
   }
 
   queueHandler (event) {
@@ -271,9 +287,14 @@ export default class Model {
     }
 
     if (typeof style === 'object') {
-      for (let prop in style) {
-        this.style[prop] = style[prop];
+      if (Object.keys(style).length > 0) {
+        for (let prop in style) {
+          this.style[prop] = style[prop];
+        }
+      } else {
+        this.style = {}
       }
+      
       this.eventHandler('styleUpdated');
     }
 
@@ -290,5 +311,58 @@ export default class Model {
       this.$node.value = this.value;
     }
     return this.value;
+  }
+
+  // State Handler ********************************************************
+
+  stateHandler (value) {
+    const stateKeys = [
+      'top',
+      'bottom',
+      'left',
+      'right',
+      'value',
+      'width',
+      'height'
+    ];
+    
+    if (!value) {
+      return this.state;
+    }
+
+    if (typeof value === 'string') {
+      this.state = value;
+      if (this.states[value] !== undefined) {
+        stateKeys.forEach((key) => {
+          this[`${key}Handler`](this.states[value][key])
+        });
+
+        if (this.states[value].style !== undefined) {
+          if (value === 'default') {
+            this.style = this.states[value].style
+          } else {
+            for (let prop in this.states[value].style) {
+              this.style[prop] = this.states[value].style[prop]
+            }
+          }
+          
+          this.eventHandler('styleUpdated');
+        }
+  
+        if (this.states[value].methods !== undefined) {
+          for (let func in this.states[value].methods) {
+            this.states[value].methods[func]();
+          }
+        }
+      }
+    }
+
+    if (typeof value === 'object') {
+      for (let key in value) {
+        this.states[key] = value[key];
+      }
+    }
+
+    return this.state;
   }
 }
