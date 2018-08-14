@@ -40,8 +40,10 @@ export default class Vnode {
     };
   }
 
-  emit (event) {
-    this.emitEvent = event;
+  emit (event, payload) {
+    payload = payload || this;
+
+    this.emitEvent = [event, payload];
   }
 
   addChild ($newNode, behaviors) {

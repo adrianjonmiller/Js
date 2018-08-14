@@ -16,7 +16,8 @@ export default class Model {
     this.$styleNode.type = 'text/css';
     this.attributes = {};
     this.events = {
-      styleUpdated: [() => {
+      styleUpdated: [{
+        fn: () => {
         if (Object.keys(this.style).length === 0) {
           this.$styleNode.innerHTML = ''
           return
@@ -35,6 +36,8 @@ export default class Model {
         } 
 
         this.$styleNode.innerHTML = style;
+      },
+      bubbles: false
       }]
     };
     this.states = {};
@@ -245,22 +248,39 @@ export default class Model {
   // Events ********************************************************
 
   eventHandler (event) {
-    if (this.events[event] !== undefined) {
-      this.events[event].map((fn) => {
-        requestAnimationFrame(fn);
-      });
+    let name = typeof event === 'string' ? event : event[0];
+    let payload = typeof event === 'string' ? null : event[1];
+    let bubbles = true;
+
+    if (this.events[name] !== undefined) {
+      for (let i =0; i < this.events[name].length; i++) {
+        let e = this.events[name][i];
+
+        bubbles = !e.bubbles ? e.bubbles : bubbles;
+
+        requestAnimationFrame(() => {
+          e.fn(payload);
+        });
+      }
     }
 
-    if (this.parent) {
-      this.parent.emit(event)
-    } 
+    if (bubbles && this.parent) {
+      this.parent.emit(event[0], event[1]);
+    }
   }
 
   queueHandler (event) {
-    if (!this.events[event.name]) {
-      this.events[event.name] = [];
+    let eventName = event.name.split('.')
+    let name = eventName[0]
+    let bubbles = eventName[1] !== 'prevent';
+
+    if (!this.events[name]) {
+      this.events[name] = [];
     }
-    this.events[event.name].push(event.fn);
+
+    console.log(name, bubbles)
+
+    this.events[name].push({fn: event.fn, bubbles: bubbles});
   }
 
   // Class ********************************************************

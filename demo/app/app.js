@@ -54,7 +54,7 @@ new Js({
         this.emit('success')
       })
     },
-    sizer: function (target) {
+    sizer: function () {
       this.style.position = 'absolute';
       this.top = 0;
       this.left = 0;
@@ -62,7 +62,7 @@ new Js({
       this.height = 100;
       this.style.border = 'solid thin black';
 
-      this.on('dragTopRight', () => {
+      this.on('dragTopRight.prevent', (target) => {
         var height = this.height;
         var offsetY = this.top;
         var offsetX = this.left;
@@ -322,6 +322,17 @@ new Js({
       this.height = 100;
       this.style.backgroundColor = 'blue';
       this.style.position = 'absolute';
+      this.states({
+        hover: {
+          style: {
+            backgroundColor: 'green'
+          }
+        }
+      })
+
+      setTimeout(() => {
+        this.state = 'hover'
+      }, 1000)
 
       this.emit('target')
 

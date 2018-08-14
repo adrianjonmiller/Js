@@ -119,25 +119,28 @@ var Model = function () {
     this.$styleNode.type = 'text/css';
     this.attributes = {};
     this.events = {
-      styleUpdated: [function () {
-        if (Object.keys(_this.style).length === 0) {
-          _this.$styleNode.innerHTML = '';
-          return;
-        }
+      styleUpdated: [{
+        fn: function fn() {
+          if (Object.keys(_this.style).length === 0) {
+            _this.$styleNode.innerHTML = '';
+            return;
+          }
 
-        var style = '#' + _this.id + '{';
+          var style = '#' + _this.id + '{';
 
-        for (var prop in _this.style) {
-          style += _utils2.default.camelCaseToDash(prop) + ':' + _this.style[prop] + ';';
-        }
+          for (var prop in _this.style) {
+            style += _utils2.default.camelCaseToDash(prop) + ':' + _this.style[prop] + ';';
+          }
 
-        style += '}';
+          style += '}';
 
-        if (_this.$styleNode.parentNode === null) {
-          head.appendChild(_this.$styleNode);
-        }
+          if (_this.$styleNode.parentNode === null) {
+            head.appendChild(_this.$styleNode);
+          }
 
-        _this.$styleNode.innerHTML = style;
+          _this.$styleNode.innerHTML = style;
+        },
+        bubbles: false
       }]
     };
     this.states = {};
@@ -365,23 +368,46 @@ var Model = function () {
   }, {
     key: 'eventHandler',
     value: function eventHandler(event) {
-      if (this.events[event] !== undefined) {
-        this.events[event].map(function (fn) {
-          requestAnimationFrame(fn);
-        });
+      var _this2 = this;
+
+      var name = typeof event === 'string' ? event : event[0];
+      var payload = typeof event === 'string' ? null : event[1];
+      var bubbles = true;
+
+      if (this.events[name] !== undefined) {
+        var _loop2 = function _loop2(i) {
+          var e = _this2.events[name][i];
+
+          bubbles = !e.bubbles ? e.bubbles : bubbles;
+
+          requestAnimationFrame(function () {
+            e.fn(payload);
+          });
+        };
+
+        for (var i = 0; i < this.events[name].length; i++) {
+          _loop2(i);
+        }
       }
 
-      if (this.parent) {
-        this.parent.emit(event);
+      if (bubbles && this.parent) {
+        this.parent.emit(event[0], event[1]);
       }
     }
   }, {
     key: 'queueHandler',
     value: function queueHandler(event) {
-      if (!this.events[event.name]) {
-        this.events[event.name] = [];
+      var eventName = event.name.split('.');
+      var name = eventName[0];
+      var bubbles = eventName[1] !== 'prevent';
+
+      if (!this.events[name]) {
+        this.events[name] = [];
       }
-      this.events[event.name].push(event.fn);
+
+      console.log(name, bubbles);
+
+      this.events[name].push({ fn: event.fn, bubbles: bubbles });
     }
 
     // Class ********************************************************
@@ -445,7 +471,7 @@ var Model = function () {
   }, {
     key: 'stateHandler',
     value: function stateHandler(value) {
-      var _this2 = this;
+      var _this3 = this;
 
       var stateKeys = ['top', 'bottom', 'left', 'right', 'value', 'width', 'height'];
 
@@ -457,7 +483,7 @@ var Model = function () {
         this.state = value;
         if (this.states[value] !== undefined) {
           stateKeys.forEach(function (key) {
-            _this2[key + 'Handler'](_this2.states[value][key]);
+            _this3[key + 'Handler'](_this3.states[value][key]);
           });
 
           if (this.states[value].style !== undefined) {
@@ -687,7 +713,7 @@ new _src2.default({
       _this2.emit('success');
     });
   },
-  sizer: function sizer(target) {
+  sizer: function sizer() {
     var _this3 = this;
 
     this.style.position = 'absolute';
@@ -697,7 +723,7 @@ new _src2.default({
     this.height = 100;
     this.style.border = 'solid thin black';
 
-    this.on('dragTopRight', function () {
+    this.on('dragTopRight.prevent', function (target) {
       var height = _this3.height;
       var offsetY = _this3.top;
       var offsetX = _this3.left;
@@ -973,6 +999,17 @@ new _src2.default({
     this.height = 100;
     this.style.backgroundColor = 'blue';
     this.style.position = 'absolute';
+    this.states({
+      hover: {
+        style: {
+          backgroundColor: 'green'
+        }
+      }
+    });
+
+    setTimeout(function () {
+      _this12.state = 'hover';
+    }, 1000);
 
     this.emit('target');
 
@@ -1141,8 +1178,10 @@ var Vnode = function () {
     }
   }, {
     key: 'emit',
-    value: function emit(event) {
-      this.emitEvent = event;
+    value: function emit(event, payload) {
+      payload = payload || this;
+
+      this.emitEvent = [event, payload];
     }
   }, {
     key: 'addChild',
