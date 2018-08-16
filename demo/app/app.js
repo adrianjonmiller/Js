@@ -40,6 +40,7 @@ new Js({
         console.log(this)
       });
     },
+
     main: function () {
       this.top = 50;
       this.left = 200;
@@ -48,21 +49,74 @@ new Js({
       this.style.backgroundColor = '#eee';
       this.style.overflow = 'hidden';
       this.style.position = 'absolute';
+
+      let sizer = this.find('id', 'sizer')[0];
+
+      this.event('mousedown', (e) => {
+        if (e.target.id === this.id) {
+          sizer.target = null;
+          sizer.show = false;
+        }
+      });
+
+      this.on('target', (target) => {
+        console.log(target)
+        sizer.target = target;
+        sizer.show = true;
+      });
     },
+
     buttonTest: function () {
       this.event('click', (e) => {
         this.emit('success')
       })
     },
-    sizer: function () {
-      this.style.position = 'absolute';
-      this.top = 0;
-      this.left = 0;
-      this.width = 100;
-      this.height = 100;
-      this.style.border = 'solid thin black';
 
-      this.on('dragTopRight.prevent', (target) => {
+    sizer: function () {
+      this.watch = {
+        show: (show) => {
+          if (show) {
+            this.style.display = 'block';
+          } else {
+            this.style.display = 'none'
+          }
+        },
+        target: (target) => {
+          if (target) {
+            console.log(target.top)
+            this.top = target.top;
+            this.left = target.left;
+            this.width = target.width;
+            this.height = target.height;
+          }
+        }
+      }
+
+      this.model({
+        target: null,
+        show: false
+      });
+
+      this.style.position = 'absolute';
+      this.style.border = 'solid thin black';
+      this.style.display = 'none';
+
+      this.event('mousedown', (e) => {
+        e.preventDefault();
+        var mouseOffX = e.clientX - this.left;
+        var mouseOffY = e.clientY - this.top;
+        this.style.outline = '1px solid black'
+
+        this.parent.$node.onmousemove = (e) => {
+          e.preventDefault();
+          this.top = e.clientY - mouseOffY;
+          this.left = e.clientX - mouseOffX;
+          this.target.top = e.clientY - mouseOffY;
+          this.target.left = e.clientX - mouseOffX;
+        }
+      });
+
+      this.on('dragTopRight.prevent', () => {
         var height = this.height;
         var offsetY = this.top;
         var offsetX = this.left;
@@ -71,13 +125,12 @@ new Js({
           e.preventDefault();
           this.height =  (offsetY - (e.clientY - this.parent.top)) + height;
           this.top = e.clientY - this.parent.top;
-          this.next.height = (offsetY - (e.clientY - this.parent.top)) + height;
-          this.next.top = e.clientY - this.parent.top;
+          this.target.height = (offsetY - (e.clientY - this.parent.top)) + height;
+          this.target.top = e.clientY - this.parent.top;
           this.width =  e.clientX - offsetX - this.parent.left;
-          this.next.width =  e.clientX - offsetX - this.parent.left;
+          this.target.width =  e.clientX - offsetX - this.parent.left;
         }
       })
-
 
       this.on('dragTopLeft', () => {
         var height = this.height;
@@ -89,14 +142,14 @@ new Js({
           e.preventDefault();
           this.height =  (offsetY - (e.clientY - this.parent.top)) + height;
           this.top = e.clientY - this.parent.top;
-          this.next.height = (offsetY - (e.clientY - this.parent.top)) + height;
-          this.next.top = e.clientY - this.parent.top;
+          this.target.height = (offsetY - (e.clientY - this.parent.top)) + height;
+          this.target.top = e.clientY - this.parent.top;
 
 
           this.width = offsetX - (e.clientX - this.parent.left) + width;
           this.left = e.clientX - this.parent.left;
-          this.next.width = offsetX - (e.clientX - this.parent.left) + width;
-          this.next.left = e.clientX - this.parent.left; 
+          this.target.width = offsetX - (e.clientX - this.parent.left) + width;
+          this.target.left = e.clientX - this.parent.left; 
         }
       })
       
@@ -108,8 +161,8 @@ new Js({
           e.preventDefault();
           this.height =  (offsetY - (e.clientY - this.parent.top)) + height;
           this.top = e.clientY - this.parent.top;
-          this.next.height = (offsetY - (e.clientY - this.parent.top)) + height;
-          this.next.top = e.clientY - this.parent.top;
+          this.target.height = (offsetY - (e.clientY - this.parent.top)) + height;
+          this.target.top = e.clientY - this.parent.top;
         }
       })
 
@@ -122,9 +175,9 @@ new Js({
           e.preventDefault();
 
           this.width = offsetX - (e.clientX - this.parent.left) + width;
-          this.next.width = offsetX - (e.clientX - this.parent.left) + width;
+          this.target.width = offsetX - (e.clientX - this.parent.left) + width;
           this.left = e.clientX - this.parent.left;
-          this.next.left = e.clientX - this.parent.left;
+          this.target.left = e.clientX - this.parent.left;
         }
       })
 
@@ -135,7 +188,7 @@ new Js({
           e.preventDefault();
 
           this.width =  e.clientX - offsetX - this.parent.left;
-          this.next.width =  e.clientX - offsetX - this.parent.left;
+          this.target.width =  e.clientX - offsetX - this.parent.left;
         }
       })
         
@@ -148,8 +201,8 @@ new Js({
 
           this.width =  e.clientX - offsetX - this.parent.left;
           this.height = e.clientY - offsetY - this.parent.top;
-          this.next.width =  e.clientX - offsetX - this.parent.left;
-          this.next.height = e.clientY - offsetY - this.parent.top;
+          this.target.width =  e.clientX - offsetX - this.parent.left;
+          this.target.height = e.clientY - offsetY - this.parent.top;
         }
       })
 
@@ -163,9 +216,9 @@ new Js({
 
           this.width = offsetX - (e.clientX - this.parent.left) + width;
           this.height = e.clientY - offsetY - this.parent.top;
-          this.next.width =  offsetX - (e.clientX - this.parent.left) + width;
-          this.next.height = e.clientY - offsetY - this.parent.top;
-          this.next.left = e.clientX - this.parent.left;
+          this.target.width =  offsetX - (e.clientX - this.parent.left) + width;
+          this.target.height = e.clientY - offsetY - this.parent.top;
+          this.target.left = e.clientX - this.parent.left;
           this.left = e.clientX- this.parent.left;
         }
       })
@@ -177,7 +230,7 @@ new Js({
           e.preventDefault();
 
           this.height = e.clientY - offsetY - this.parent.top;
-          this.next.height = e.clientY - offsetY - this.parent.top;
+          this.target.height = e.clientY - offsetY - this.parent.top;
         }
       })
 
@@ -320,39 +373,21 @@ new Js({
     block: function () {
       this.width = 100;
       this.height = 100;
+      this.top = 0;
+      this.left = 0;
       this.style.backgroundColor = 'blue';
       this.style.position = 'absolute';
+
       this.states({
         hover: {
           style: {
             backgroundColor: 'green'
           }
         }
-      })
-
-      setTimeout(() => {
-        this.state = 'hover'
-      }, 1000)
-
-      this.emit('target')
-
-      this.event('mousedown', (e) => {
-        e.preventDefault();
-        var mouseOffX = e.clientX - this.left;
-        var mouseOffY = e.clientY - this.top;
-        this.style.outline = '1px solid black'
-
-        this.parent.$node.onmousemove = (e) => {
-          e.preventDefault();
-          this.top =  e.clientY - mouseOffY;
-          this.left = e.clientX - mouseOffX;
-          this.prev.top = e.clientY - mouseOffY;
-          this.prev.left = e.clientX - mouseOffX;
-        }
       });
 
-      this.event('mouseup', (e) => {
-        this.parent.$node.onmousemove = null;
+      this.event('mousedown', (e) => {
+        this.emit('target');
       });
     }
   }

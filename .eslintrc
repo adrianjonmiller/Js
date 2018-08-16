@@ -30,6 +30,14 @@
 
   ],
 
+  "parserOptions": {
+    "ecmaVersion": 6,
+    "sourceType": "module",
+    "ecmaFeatures": {
+        "jsx": true
+    }
+},
+
   "rules": {
     "block-scoped-var": 2,
     "brace-style": [2, "1tbs", { "allowSingleLine": true }],

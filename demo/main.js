@@ -697,7 +697,10 @@ new _src2.default({
       console.log(_this);
     });
   },
+
   main: function main() {
+    var _this2 = this;
+
     this.top = 50;
     this.left = 200;
     this.right = 200;
@@ -705,151 +708,204 @@ new _src2.default({
     this.style.backgroundColor = '#eee';
     this.style.overflow = 'hidden';
     this.style.position = 'absolute';
-  },
-  buttonTest: function buttonTest() {
-    var _this2 = this;
 
-    this.event('click', function (e) {
-      _this2.emit('success');
+    var sizer = this.find('id', 'sizer')[0];
+
+    this.event('mousedown', function (e) {
+      if (e.target.id === _this2.id) {
+        sizer.target = null;
+        sizer.show = false;
+      }
+    });
+
+    this.on('target', function (target) {
+      console.log(target);
+      sizer.target = target;
+      sizer.show = true;
     });
   },
-  sizer: function sizer() {
+
+  buttonTest: function buttonTest() {
     var _this3 = this;
 
+    this.event('click', function (e) {
+      _this3.emit('success');
+    });
+  },
+
+  sizer: function sizer() {
+    var _this4 = this;
+
+    this.watch = {
+      show: function show(_show) {
+        if (_show) {
+          _this4.style.display = 'block';
+        } else {
+          _this4.style.display = 'none';
+        }
+      },
+      target: function target(_target) {
+        if (_target) {
+          console.log(_target.top);
+          _this4.top = _target.top;
+          _this4.left = _target.left;
+          _this4.width = _target.width;
+          _this4.height = _target.height;
+        }
+      }
+    };
+
+    this.model({
+      target: null,
+      show: false
+    });
+
     this.style.position = 'absolute';
-    this.top = 0;
-    this.left = 0;
-    this.width = 100;
-    this.height = 100;
     this.style.border = 'solid thin black';
+    this.style.display = 'none';
 
-    this.on('dragTopRight.prevent', function (target) {
-      var height = _this3.height;
-      var offsetY = _this3.top;
-      var offsetX = _this3.left;
+    this.event('mousedown', function (e) {
+      e.preventDefault();
+      var mouseOffX = e.clientX - _this4.left;
+      var mouseOffY = e.clientY - _this4.top;
+      _this4.style.outline = '1px solid black';
 
-      _this3.parent.$node.onmousemove = function (e) {
+      _this4.parent.$node.onmousemove = function (e) {
         e.preventDefault();
-        _this3.height = offsetY - (e.clientY - _this3.parent.top) + height;
-        _this3.top = e.clientY - _this3.parent.top;
-        _this3.next.height = offsetY - (e.clientY - _this3.parent.top) + height;
-        _this3.next.top = e.clientY - _this3.parent.top;
-        _this3.width = e.clientX - offsetX - _this3.parent.left;
-        _this3.next.width = e.clientX - offsetX - _this3.parent.left;
+        _this4.top = e.clientY - mouseOffY;
+        _this4.left = e.clientX - mouseOffX;
+        _this4.target.top = e.clientY - mouseOffY;
+        _this4.target.left = e.clientX - mouseOffX;
+      };
+    });
+
+    this.on('dragTopRight.prevent', function () {
+      var height = _this4.height;
+      var offsetY = _this4.top;
+      var offsetX = _this4.left;
+
+      _this4.parent.$node.onmousemove = function (e) {
+        e.preventDefault();
+        _this4.height = offsetY - (e.clientY - _this4.parent.top) + height;
+        _this4.top = e.clientY - _this4.parent.top;
+        _this4.target.height = offsetY - (e.clientY - _this4.parent.top) + height;
+        _this4.target.top = e.clientY - _this4.parent.top;
+        _this4.width = e.clientX - offsetX - _this4.parent.left;
+        _this4.target.width = e.clientX - offsetX - _this4.parent.left;
       };
     });
 
     this.on('dragTopLeft', function () {
-      var height = _this3.height;
-      var offsetY = _this3.top;
-      var offsetX = _this3.left;
-      var width = _this3.width;
+      var height = _this4.height;
+      var offsetY = _this4.top;
+      var offsetX = _this4.left;
+      var width = _this4.width;
 
-      _this3.parent.$node.onmousemove = function (e) {
+      _this4.parent.$node.onmousemove = function (e) {
         e.preventDefault();
-        _this3.height = offsetY - (e.clientY - _this3.parent.top) + height;
-        _this3.top = e.clientY - _this3.parent.top;
-        _this3.next.height = offsetY - (e.clientY - _this3.parent.top) + height;
-        _this3.next.top = e.clientY - _this3.parent.top;
+        _this4.height = offsetY - (e.clientY - _this4.parent.top) + height;
+        _this4.top = e.clientY - _this4.parent.top;
+        _this4.target.height = offsetY - (e.clientY - _this4.parent.top) + height;
+        _this4.target.top = e.clientY - _this4.parent.top;
 
-        _this3.width = offsetX - (e.clientX - _this3.parent.left) + width;
-        _this3.left = e.clientX - _this3.parent.left;
-        _this3.next.width = offsetX - (e.clientX - _this3.parent.left) + width;
-        _this3.next.left = e.clientX - _this3.parent.left;
+        _this4.width = offsetX - (e.clientX - _this4.parent.left) + width;
+        _this4.left = e.clientX - _this4.parent.left;
+        _this4.target.width = offsetX - (e.clientX - _this4.parent.left) + width;
+        _this4.target.left = e.clientX - _this4.parent.left;
       };
     });
 
     this.on('dragTop', function () {
-      var height = _this3.height;
-      var offsetY = _this3.top;
+      var height = _this4.height;
+      var offsetY = _this4.top;
 
-      _this3.parent.$node.onmousemove = function (e) {
+      _this4.parent.$node.onmousemove = function (e) {
         e.preventDefault();
-        _this3.height = offsetY - (e.clientY - _this3.parent.top) + height;
-        _this3.top = e.clientY - _this3.parent.top;
-        _this3.next.height = offsetY - (e.clientY - _this3.parent.top) + height;
-        _this3.next.top = e.clientY - _this3.parent.top;
+        _this4.height = offsetY - (e.clientY - _this4.parent.top) + height;
+        _this4.top = e.clientY - _this4.parent.top;
+        _this4.target.height = offsetY - (e.clientY - _this4.parent.top) + height;
+        _this4.target.top = e.clientY - _this4.parent.top;
       };
     });
 
     this.on('dragLeft', function () {
 
-      var offsetX = _this3.left;
-      var width = _this3.width;
+      var offsetX = _this4.left;
+      var width = _this4.width;
 
-      _this3.parent.$node.onmousemove = function (e) {
+      _this4.parent.$node.onmousemove = function (e) {
         e.preventDefault();
 
-        _this3.width = offsetX - (e.clientX - _this3.parent.left) + width;
-        _this3.next.width = offsetX - (e.clientX - _this3.parent.left) + width;
-        _this3.left = e.clientX - _this3.parent.left;
-        _this3.next.left = e.clientX - _this3.parent.left;
+        _this4.width = offsetX - (e.clientX - _this4.parent.left) + width;
+        _this4.target.width = offsetX - (e.clientX - _this4.parent.left) + width;
+        _this4.left = e.clientX - _this4.parent.left;
+        _this4.target.left = e.clientX - _this4.parent.left;
       };
     });
 
     this.on('dragRight', function () {
-      var offsetX = _this3.left;
+      var offsetX = _this4.left;
 
-      _this3.parent.$node.onmousemove = function (e) {
+      _this4.parent.$node.onmousemove = function (e) {
         e.preventDefault();
 
-        _this3.width = e.clientX - offsetX - _this3.parent.left;
-        _this3.next.width = e.clientX - offsetX - _this3.parent.left;
+        _this4.width = e.clientX - offsetX - _this4.parent.left;
+        _this4.target.width = e.clientX - offsetX - _this4.parent.left;
       };
     });
 
     this.on('dragBottomRight', function () {
-      var offsetX = _this3.left;
-      var offsetY = _this3.top;
+      var offsetX = _this4.left;
+      var offsetY = _this4.top;
 
-      _this3.parent.$node.onmousemove = function (e) {
+      _this4.parent.$node.onmousemove = function (e) {
         e.preventDefault();
 
-        _this3.width = e.clientX - offsetX - _this3.parent.left;
-        _this3.height = e.clientY - offsetY - _this3.parent.top;
-        _this3.next.width = e.clientX - offsetX - _this3.parent.left;
-        _this3.next.height = e.clientY - offsetY - _this3.parent.top;
+        _this4.width = e.clientX - offsetX - _this4.parent.left;
+        _this4.height = e.clientY - offsetY - _this4.parent.top;
+        _this4.target.width = e.clientX - offsetX - _this4.parent.left;
+        _this4.target.height = e.clientY - offsetY - _this4.parent.top;
       };
     });
 
     this.on('dragBottomLeft', function () {
-      var offsetX = _this3.left;
-      var width = _this3.width;
-      var offsetY = _this3.top;
+      var offsetX = _this4.left;
+      var width = _this4.width;
+      var offsetY = _this4.top;
 
-      _this3.parent.$node.onmousemove = function (e) {
+      _this4.parent.$node.onmousemove = function (e) {
         e.preventDefault();
 
-        _this3.width = offsetX - (e.clientX - _this3.parent.left) + width;
-        _this3.height = e.clientY - offsetY - _this3.parent.top;
-        _this3.next.width = offsetX - (e.clientX - _this3.parent.left) + width;
-        _this3.next.height = e.clientY - offsetY - _this3.parent.top;
-        _this3.next.left = e.clientX - _this3.parent.left;
-        _this3.left = e.clientX - _this3.parent.left;
+        _this4.width = offsetX - (e.clientX - _this4.parent.left) + width;
+        _this4.height = e.clientY - offsetY - _this4.parent.top;
+        _this4.target.width = offsetX - (e.clientX - _this4.parent.left) + width;
+        _this4.target.height = e.clientY - offsetY - _this4.parent.top;
+        _this4.target.left = e.clientX - _this4.parent.left;
+        _this4.left = e.clientX - _this4.parent.left;
       };
     });
 
     this.on('dragBottom', function () {
-      var offsetY = _this3.top;
+      var offsetY = _this4.top;
 
-      _this3.parent.$node.onmousemove = function (e) {
+      _this4.parent.$node.onmousemove = function (e) {
         e.preventDefault();
 
-        _this3.height = e.clientY - offsetY - _this3.parent.top;
-        _this3.next.height = e.clientY - offsetY - _this3.parent.top;
+        _this4.height = e.clientY - offsetY - _this4.parent.top;
+        _this4.target.height = e.clientY - offsetY - _this4.parent.top;
       };
     });
 
     this.on('release', function () {
-      _this3.parent.$node.onmousemove = null;
+      _this4.parent.$node.onmousemove = null;
     });
 
     this.parent.event('mouseup', function () {
-      _this3.parent.$node.onmousemove = null;
+      _this4.parent.$node.onmousemove = null;
     });
   },
   dragTopRight: function dragTopRight() {
-    var _this4 = this;
+    var _this5 = this;
 
     this.style.transform = 'translate(50%, -50%)';
     this.width = 10;
@@ -859,15 +915,15 @@ new _src2.default({
     this.style.backgroundColor = 'black';
 
     this.event('mousedown', function (e) {
-      _this4.emit("dragTopRight");
+      _this5.emit("dragTopRight");
     });
 
     this.event('mouseup', function (e) {
-      _this4.emit("release");
+      _this5.emit("release");
     });
   },
   dragTopLeft: function dragTopLeft() {
-    var _this5 = this;
+    var _this6 = this;
 
     this.style.transform = 'translate(-50%, -50%)';
     this.width = 10;
@@ -877,15 +933,15 @@ new _src2.default({
     this.style.backgroundColor = 'black';
 
     this.event('mousedown', function (e) {
-      _this5.emit("dragTopLeft");
+      _this6.emit("dragTopLeft");
     });
 
     this.event('mouseup', function (e) {
-      _this5.emit("release");
+      _this6.emit("release");
     });
   },
   dragTop: function dragTop() {
-    var _this6 = this;
+    var _this7 = this;
 
     this.style.transform = 'translate(-50%, -50%)';
     this.width = 10;
@@ -895,15 +951,15 @@ new _src2.default({
     this.style.backgroundColor = 'black';
 
     this.event('mousedown', function (e) {
-      _this6.emit("dragTop");
+      _this7.emit("dragTop");
     });
 
     this.event('mouseup', function (e) {
-      _this6.emit("release");
+      _this7.emit("release");
     });
   },
   dragBottom: function dragBottom() {
-    var _this7 = this;
+    var _this8 = this;
 
     this.style.transform = 'translate(-50%, 50%)';
     this.width = 10;
@@ -913,15 +969,15 @@ new _src2.default({
     this.style.backgroundColor = 'black';
 
     this.event('mousedown', function (e) {
-      _this7.emit("dragBottom");
+      _this8.emit("dragBottom");
     });
 
     this.event('mouseup', function (e) {
-      _this7.emit("release");
+      _this8.emit("release");
     });
   },
   dragBottomRight: function dragBottomRight() {
-    var _this8 = this;
+    var _this9 = this;
 
     this.style.transform = 'translate(50%, 50%)';
     this.width = 10;
@@ -931,15 +987,15 @@ new _src2.default({
     this.style.backgroundColor = 'black';
 
     this.event('mousedown', function (e) {
-      _this8.emit("dragBottomRight");
+      _this9.emit("dragBottomRight");
     });
 
     this.event('mouseup', function (e) {
-      _this8.emit("release");
+      _this9.emit("release");
     });
   },
   dragRight: function dragRight() {
-    var _this9 = this;
+    var _this10 = this;
 
     this.style.transform = 'translate(50%)';
     this.width = 10;
@@ -949,15 +1005,15 @@ new _src2.default({
     this.style.backgroundColor = 'black';
 
     this.event('mousedown', function (e) {
-      _this9.emit("dragRight");
+      _this10.emit("dragRight");
     });
 
     this.event('mouseup', function (e) {
-      _this9.emit("release");
+      _this10.emit("release");
     });
   },
   dragLeft: function dragLeft() {
-    var _this10 = this;
+    var _this11 = this;
 
     this.style.transform = 'translate(-50%)';
     this.width = 10;
@@ -967,15 +1023,15 @@ new _src2.default({
     this.style.backgroundColor = 'black';
 
     this.event('mousedown', function (e) {
-      _this10.emit("dragLeft");
+      _this11.emit("dragLeft");
     });
 
     this.event('mouseup', function (e) {
-      _this10.emit("release");
+      _this11.emit("release");
     });
   },
   dragBottomLeft: function dragBottomLeft() {
-    var _this11 = this;
+    var _this12 = this;
 
     this.style.transform = 'translate(-50%, 50%)';
     this.width = 10;
@@ -985,20 +1041,23 @@ new _src2.default({
     this.style.backgroundColor = 'black';
 
     this.event('mousedown', function (e) {
-      _this11.emit("dragBottomLeft");
+      _this12.emit("dragBottomLeft");
     });
 
     this.event('mouseup', function (e) {
-      _this11.emit("release");
+      _this12.emit("release");
     });
   },
   block: function block() {
-    var _this12 = this;
+    var _this13 = this;
 
     this.width = 100;
     this.height = 100;
+    this.top = 0;
+    this.left = 0;
     this.style.backgroundColor = 'blue';
     this.style.position = 'absolute';
+
     this.states({
       hover: {
         style: {
@@ -1007,29 +1066,8 @@ new _src2.default({
       }
     });
 
-    setTimeout(function () {
-      _this12.state = 'hover';
-    }, 1000);
-
-    this.emit('target');
-
     this.event('mousedown', function (e) {
-      e.preventDefault();
-      var mouseOffX = e.clientX - _this12.left;
-      var mouseOffY = e.clientY - _this12.top;
-      _this12.style.outline = '1px solid black';
-
-      _this12.parent.$node.onmousemove = function (e) {
-        e.preventDefault();
-        _this12.top = e.clientY - mouseOffY;
-        _this12.left = e.clientX - mouseOffX;
-        _this12.prev.top = e.clientY - mouseOffY;
-        _this12.prev.left = e.clientX - mouseOffX;
-      };
-    });
-
-    this.event('mouseup', function (e) {
-      _this12.parent.$node.onmousemove = null;
+      _this13.emit('target');
     });
   }
 }).init('#scope');
