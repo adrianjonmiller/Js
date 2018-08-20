@@ -95,6 +95,10 @@ var _utils = __webpack_require__(1);
 
 var _utils2 = _interopRequireDefault(_utils);
 
+var _events = __webpack_require__(5);
+
+var _events2 = _interopRequireDefault(_events);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -490,11 +494,8 @@ var Model = function () {
             if (value === 'default') {
               this.style = this.states[value].style;
             } else {
-              for (var prop in this.states[value].style) {
-                this.style[prop] = this.states[value].style[prop];
-              }
+              Object.assign(this.style, this.states[value].style);
             }
-
             this.eventHandler('styleUpdated');
           }
 
@@ -536,6 +537,7 @@ Object.defineProperty(exports, "__esModule", {
 
 exports.default = {
   id: 0,
+  prefix: 'Layer_',
   camelCaseToDash: function camelCaseToDash(myStr) {
     return myStr.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase();
   },
@@ -552,16 +554,16 @@ exports.default = {
     return styleNode;
   },
   uid: function uid() {
-    return '_js' + this.id++;
+    return this.prefix + this.id++;
   },
   current: function current() {
     return this.id;
   },
   prev: function prev() {
-    return '_js' + (this.id - 1);
+    return this.prefix + (this.id - 1);
   },
   next: function next() {
-    return '_js' + this.id;
+    return this.prefix + this.id;
   }
 };
 module.exports = exports['default'];
@@ -579,7 +581,7 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _vnode = __webpack_require__(5);
+var _vnode = __webpack_require__(6);
 
 var _vnode2 = _interopRequireDefault(_vnode);
 
@@ -662,7 +664,32 @@ new _src2.default({
     this.top = 0;
     this.right = 0;
     this.left = 0;
+
+    var main = this.find('id', 'main')[0];
+    var sidebar = this.find('id', 'sidebar')[0];
+
+    var list = sidebar.list = function list(item, result) {
+      if (item.id !== 'sizer') {
+        result[item.id] = {};
+        result[item.id].name = item.id;
+
+        if (item.child) {
+          result[item.id].child = item.child.id;
+          list(item.child, result);
+        }
+
+        if (item.next) {
+          result[item.id].next = item.next.id;
+          list(item.next, result);
+        }
+      }
+
+      return result;
+    }(main.child, {});
+
+    sidebar.list = list;
   },
+
   sidebar: function sidebar() {
     this.style.position = 'absolute';
     this.bottom = 0;
@@ -672,7 +699,19 @@ new _src2.default({
     this.style.backgroundColor = '#ececec';
     this.style.borderRight = 'solid thin #AAAAAA';
     this.style.boxSizing = 'border-box';
+
+    var ul = document.createElement('ul');
+    ul.classList.add('unstyle');
+    for (var key in this.list) {
+      var li = document.createElement('li');
+      console.log(this.list[key]);
+      li.innerHTML = this.list[key].name;
+      ul.appendChild(li);
+    }
+
+    this.$node.appendChild(ul);
   },
+
   properties: function properties() {
     this.style.position = 'absolute';
     this.bottom = 0;
@@ -710,6 +749,7 @@ new _src2.default({
     this.style.position = 'absolute';
 
     var sizer = this.find('id', 'sizer')[0];
+    var sidebar = this.find('id', 'sidebar'[0]);
 
     this.event('mousedown', function (e) {
       if (e.target.id === _this2.id) {
@@ -719,7 +759,6 @@ new _src2.default({
     });
 
     this.on('target', function (target) {
-      console.log(target);
       sizer.target = target;
       sizer.show = true;
     });
@@ -745,12 +784,23 @@ new _src2.default({
         }
       },
       target: function target(_target) {
-        if (_target) {
-          console.log(_target.top);
-          _this4.top = _target.top;
-          _this4.left = _target.left;
-          _this4.width = _target.width;
-          _this4.height = _target.height;
+        if (_target && Object.keys(_target).length > 0) {
+          _this4.top = _target.vnode.top;
+          _this4.left = _target.vnode.left;
+          _this4.width = _target.vnode.width;
+          _this4.height = _target.vnode.height;
+
+          var mouseOffX = _target.event.clientX - _target.vnode.left;
+          var mouseOffY = _target.event.clientY - _target.vnode.top;
+          _this4.style.outline = '1px solid black';
+
+          _this4.parent.$node.onmousemove = function (e) {
+            e.preventDefault();
+            _this4.top = e.clientY - mouseOffY;
+            _this4.left = e.clientX - mouseOffX;
+            _this4.target.vnode.top = e.clientY - mouseOffY;
+            _this4.target.vnode.left = e.clientX - mouseOffX;
+          };
         }
       }
     };
@@ -774,8 +824,8 @@ new _src2.default({
         e.preventDefault();
         _this4.top = e.clientY - mouseOffY;
         _this4.left = e.clientX - mouseOffX;
-        _this4.target.top = e.clientY - mouseOffY;
-        _this4.target.left = e.clientX - mouseOffX;
+        _this4.target.vnode.top = e.clientY - mouseOffY;
+        _this4.target.vnode.left = e.clientX - mouseOffX;
       };
     });
 
@@ -788,10 +838,10 @@ new _src2.default({
         e.preventDefault();
         _this4.height = offsetY - (e.clientY - _this4.parent.top) + height;
         _this4.top = e.clientY - _this4.parent.top;
-        _this4.target.height = offsetY - (e.clientY - _this4.parent.top) + height;
-        _this4.target.top = e.clientY - _this4.parent.top;
+        _this4.target.vnode.height = offsetY - (e.clientY - _this4.parent.top) + height;
+        _this4.target.vnode.top = e.clientY - _this4.parent.top;
         _this4.width = e.clientX - offsetX - _this4.parent.left;
-        _this4.target.width = e.clientX - offsetX - _this4.parent.left;
+        _this4.target.vnode.width = e.clientX - offsetX - _this4.parent.left;
       };
     });
 
@@ -805,13 +855,13 @@ new _src2.default({
         e.preventDefault();
         _this4.height = offsetY - (e.clientY - _this4.parent.top) + height;
         _this4.top = e.clientY - _this4.parent.top;
-        _this4.target.height = offsetY - (e.clientY - _this4.parent.top) + height;
-        _this4.target.top = e.clientY - _this4.parent.top;
+        _this4.target.vnode.height = offsetY - (e.clientY - _this4.parent.top) + height;
+        _this4.target.vnode.top = e.clientY - _this4.parent.top;
 
         _this4.width = offsetX - (e.clientX - _this4.parent.left) + width;
         _this4.left = e.clientX - _this4.parent.left;
-        _this4.target.width = offsetX - (e.clientX - _this4.parent.left) + width;
-        _this4.target.left = e.clientX - _this4.parent.left;
+        _this4.target.vnode.width = offsetX - (e.clientX - _this4.parent.left) + width;
+        _this4.target.vnode.left = e.clientX - _this4.parent.left;
       };
     });
 
@@ -823,8 +873,8 @@ new _src2.default({
         e.preventDefault();
         _this4.height = offsetY - (e.clientY - _this4.parent.top) + height;
         _this4.top = e.clientY - _this4.parent.top;
-        _this4.target.height = offsetY - (e.clientY - _this4.parent.top) + height;
-        _this4.target.top = e.clientY - _this4.parent.top;
+        _this4.target.vnode.height = offsetY - (e.clientY - _this4.parent.top) + height;
+        _this4.target.vnode.top = e.clientY - _this4.parent.top;
       };
     });
 
@@ -837,9 +887,9 @@ new _src2.default({
         e.preventDefault();
 
         _this4.width = offsetX - (e.clientX - _this4.parent.left) + width;
-        _this4.target.width = offsetX - (e.clientX - _this4.parent.left) + width;
+        _this4.target.vnode.width = offsetX - (e.clientX - _this4.parent.left) + width;
         _this4.left = e.clientX - _this4.parent.left;
-        _this4.target.left = e.clientX - _this4.parent.left;
+        _this4.target.vnode.left = e.clientX - _this4.parent.left;
       };
     });
 
@@ -850,7 +900,7 @@ new _src2.default({
         e.preventDefault();
 
         _this4.width = e.clientX - offsetX - _this4.parent.left;
-        _this4.target.width = e.clientX - offsetX - _this4.parent.left;
+        _this4.target.vnode.width = e.clientX - offsetX - _this4.parent.left;
       };
     });
 
@@ -863,8 +913,8 @@ new _src2.default({
 
         _this4.width = e.clientX - offsetX - _this4.parent.left;
         _this4.height = e.clientY - offsetY - _this4.parent.top;
-        _this4.target.width = e.clientX - offsetX - _this4.parent.left;
-        _this4.target.height = e.clientY - offsetY - _this4.parent.top;
+        _this4.target.vnode.width = e.clientX - offsetX - _this4.parent.left;
+        _this4.target.vnode.height = e.clientY - offsetY - _this4.parent.top;
       };
     });
 
@@ -878,9 +928,9 @@ new _src2.default({
 
         _this4.width = offsetX - (e.clientX - _this4.parent.left) + width;
         _this4.height = e.clientY - offsetY - _this4.parent.top;
-        _this4.target.width = offsetX - (e.clientX - _this4.parent.left) + width;
-        _this4.target.height = e.clientY - offsetY - _this4.parent.top;
-        _this4.target.left = e.clientX - _this4.parent.left;
+        _this4.target.vnode.width = offsetX - (e.clientX - _this4.parent.left) + width;
+        _this4.target.vnode.height = e.clientY - offsetY - _this4.parent.top;
+        _this4.target.vnode.left = e.clientX - _this4.parent.left;
         _this4.left = e.clientX - _this4.parent.left;
       };
     });
@@ -892,7 +942,7 @@ new _src2.default({
         e.preventDefault();
 
         _this4.height = e.clientY - offsetY - _this4.parent.top;
-        _this4.target.height = e.clientY - offsetY - _this4.parent.top;
+        _this4.target.vnode.height = e.clientY - offsetY - _this4.parent.top;
       };
     });
 
@@ -1057,6 +1107,7 @@ new _src2.default({
     this.left = 0;
     this.style.backgroundColor = 'blue';
     this.style.position = 'absolute';
+    this.style.border = 'solid thin black';
 
     this.states({
       hover: {
@@ -1067,7 +1118,10 @@ new _src2.default({
     });
 
     this.event('mousedown', function (e) {
-      _this13.emit('target');
+      _this13.emit('target', {
+        vnode: _this13,
+        event: e
+      });
     });
   }
 }).init('#scope');
@@ -1141,6 +1195,43 @@ module.exports = exports['default'];
 
 /***/ }),
 /* 5 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = {
+  styleUpdated: [{
+    fn: function fn() {
+      if (Object.keys(undefined.style).length === 0) {
+        undefined.$styleNode.innerHTML = '';
+        return;
+      }
+
+      var style = '#' + undefined.id + '{';
+
+      for (var prop in undefined.style) {
+        style += utils.camelCaseToDash(prop) + ':' + undefined.style[prop] + ';';
+      }
+
+      style += '}';
+
+      if (undefined.$styleNode.parentNode === null) {
+        head.appendChild(undefined.$styleNode);
+      }
+
+      undefined.$styleNode.innerHTML = style;
+    },
+    bubbles: false
+  }]
+};
+module.exports = exports['default'];
+
+/***/ }),
+/* 6 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
